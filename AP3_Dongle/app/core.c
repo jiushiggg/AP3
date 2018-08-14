@@ -17,7 +17,8 @@
 /* Board Header file */
 #include "Board.h"
 #include "datatype.h"
-#include "../peripheral/extern_flash.h"
+#include "sys_cfg.h"
+#include "extern_flash.h"
 #include "core.h"
 #include "timer.h"
 #include "debug.h"
@@ -37,7 +38,7 @@
 #include "cc2640r2_rf.h"
 #include "communicate.h"
 #include "event.h"
-#include "uart.h"
+#include "protocol.h"
 
 #pragma location=(CORE_TASK_ADDR)
 core_task_t local_task;
@@ -49,7 +50,7 @@ uint8_t Core_SendCmd(uint16_t cmd, uint32_t cmd_len, uint8_t *cmd_data)
 {
     INT32 tx_ack_ret = 0;
     UINT8 ret = 0;
-    xmodem_t x;
+    sn_t x;
 
     if((cmd_len+2+4) > sizeof(xcb_buf))
     {
@@ -63,9 +64,9 @@ uint8_t Core_SendCmd(uint16_t cmd, uint32_t cmd_len, uint8_t *cmd_data)
     {
         memcpy(xcb_buf+6, cmd_data, cmd_len);
     }
-    memset(&x, 0, sizeof(xmodem_t));
+    memset(&x, 0, sizeof(sn_t));
 
-    tx_ack_ret = Xmodem_Send(&x, 1, xcb_buf, cmd_len+2+4, 5000);
+    tx_ack_ret = protocol_send(&x, xcb_buf, cmd_len+2+4, 5000);
     if(tx_ack_ret == (cmd_len+2+4))
     {
         pdebug("Core_SendCmd 0x%04X\r\n", cmd);
@@ -101,7 +102,8 @@ void Core_Init(void)
 	
 	memset(&local_task, 0 , sizeof(core_task_t));
 	
-	Xmodem_InitCallback();
+	protocol_dataInit();
+
 }
 
 void Core_TxHandler(void)
@@ -121,7 +123,7 @@ void Core_RxHandler(void)
 {
 	memset(&local_task, 0 , sizeof(core_task_t));
 	
-	local_task.data_ptr = Xmodem_GetCallbackData(&local_task.data_len);
+	local_task.data_ptr = protocol_getData(&local_task.data_len);
 	memcpy((void *)&local_task.cmd, local_task.data_ptr, 2);
 	memcpy((void *)&local_task.cmd_len, local_task.data_ptr+2, 4);
 	pinfo("Core_RxHandler cmd=0x%04X, cmd len=%d\r\n", local_task.cmd, local_task.cmd_len);
@@ -204,17 +206,17 @@ extern INT32 wakeup_start(UINT32 addr, UINT32 len, UINT8 type);
 void readHandleFnx(void)
 {
     int16_t ret = 0;
-    ret = Xmodem_RecvCallBack();
+    ret = protocol_recv();
     if(ret > CORE_CMD_LEN){
         perr("Xmodem_RecvCallBack recv too big data(%d) to handle.\r\n", ret);
-        Xmodem_InitCallback();
+        protocol_dataInit();
     }else if((ret > 0)&&(ret <=XCB_BUF_SIZE)){
         EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv data len = %d.\r\n", ret));
         Core_RxHandler();
-        Xmodem_InitCallback();
+        protocol_dataInit();
     }else if(ret < 0){
         EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv error(%d)!\r\n", ret));
-        Xmodem_InitCallback();
+        protocol_dataInit();
     }else{
         EP_DEBUG(("\r\n>>>EP1_OUT_Callback.\r\n"));
     }

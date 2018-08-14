@@ -355,6 +355,7 @@ const uint_least8_t Display_count = 0;
 GPIO_PinConfig gpioPinConfigs[] = {
     /* SPI Flash CSN */
     GPIOCC26XX_DIO_27 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
+//    GPIOCC26XX_DIO_12 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH
 };
 
 /*

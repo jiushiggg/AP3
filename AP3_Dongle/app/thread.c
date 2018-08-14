@@ -118,7 +118,7 @@ void *mainThread(void *arg0)
     Board_initSPI();
     Board_initUART();
     Debug_SetLevel(DEBUG_LEVEL_INFO);
-//    printf("     \r\n%s.\r\n", APP_VERSION_STRING);
+
     debug_peripheral_init();
     pinfo("basic init complete.\r\n");
 

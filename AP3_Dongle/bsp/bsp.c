@@ -4,7 +4,6 @@
 */
 
 #include "bsp.h"
-#include "bsp_config.h"
 #include <stdio.h>
 
 #include <inc/hw_prcm.h>

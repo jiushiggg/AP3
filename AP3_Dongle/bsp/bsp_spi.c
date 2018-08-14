@@ -50,7 +50,6 @@
 #include <driverlib/prcm.h>
 #include <driverlib/ioc.h>
 #include <driverlib/rom.h>
-#include <driverlib/ssi.h>
 #include "CC2640R2_LAUNCHXL.h"
 #include <ti/drivers/Power.h>
 #include <ti/drivers/power/PowerCC26XX.h>

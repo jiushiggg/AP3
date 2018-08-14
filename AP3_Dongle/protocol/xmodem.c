@@ -1,14 +1,10 @@
-
 #include <string.h>
 #include <stdio.h>
 
-#include <ti/sysbios/BIOS.h>
-
-#include "debug.h"
 #include "xmodem.h"
+#include "debug.h"
 #include "crc16.h"
 #include "flash.h"
-#include "device.h"
 #include "event.h"
 #include "core.h"
 #include "bsp.h"
@@ -37,13 +33,34 @@
 
 static volatile Bool recCmdAckFlg    =   false;
 static volatile Bool writeFlashFlg   = false;
-static xmodem_t xcb;
+static sn_t xcb;
 #pragma location = (XCB_BUF_ADDR);
 UINT8 xcb_buf[XCB_BUF_SIZE] = {0};                  //protocol buffer
 INT32 xcb_recv_len = 0;                             //valid data length
 static volatile  INT32  xcb_recv_len_once = 0;
 #pragma location = (XMODEM_LEN_ALL_ADDR)
 UINT8 recv_once_buf[XMODEM_LEN_ALL] = {0};          //the buffer used for UART receiving data
+
+
+
+void Xmodem_DataInit(void);
+INT32 Xmodem_Send(sn_t *x, UINT8 *src, INT32 len, INT32 timeout);
+INT32 Xmodem_Recv(void);
+UINT8 *Xmodem_GetData(UINT32 *len);
+INT32 Xmodem_RecvToFlash(sn_t *x, UINT32 addr, INT32 dst_len, INT32 timeout);
+INT32 Xmodem_SendFromFlash(sn_t *x, UINT32 addr, INT32 len, INT32 timeout);
+
+
+st_protocolFnxTable xmodemFnx={
+.dataInitFnx    =   Xmodem_DataInit,
+.sendFnx        =   Xmodem_Send,
+.recvFnx        =   Xmodem_Recv,
+.getDataFnx     =   Xmodem_GetData,
+.sendFromFlashFnx = Xmodem_SendFromFlash,
+.recvToFlashFnx =   Xmodem_RecvToFlash
+};
+
+
 
 /*
 ** xmodem function
@@ -65,26 +82,7 @@ static UINT8 Xmodem_CheckCrc(UINT8 *xbuf)
 	}
 }
 
-//UINT8 Xmodem_RecvCmd(INT32 dev, INT32 timeout)
-//{
-//	UINT8 cmd = 0;
-//	INT32 recv_len = 0;
-//
-//	if(Device_Select(dev, timeout) > 0)
-//	{
-//		recv_len = Device_Recv(dev, &cmd, sizeof(cmd), timeout);
-//		if(recv_len != sizeof(cmd))
-//		{
-//			cmd = 0;
-//		}
-//	}
-//
-//	X_DEBUG((">>>Xmodem_RecvCmd:\r\nrecv_len = %d, cmd = 0x%02X.\r\n", recv_len, cmd));
-//
-//	return cmd;
-//}
-
-INT32 Xmodem_SendCmd(INT32 dev, UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
+static INT32 Xmodem_SendCmd(UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
 {
 	INT32 retry_time = RETRYTIME_TX;
 	INT32 send_len = 0;
@@ -95,7 +93,7 @@ INT32 Xmodem_SendCmd(INT32 dev, UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
 	X_DEBUG((">en1,cmd=0x%02X,flag=%d,", cmd, recv_ack_flag));
 	while(retry_time > 0)
 	{	
-		send_ret = Device_Send(dev, &cmd, sizeof(cmd), timeout);
+		send_ret = UART_appWrite(&cmd, sizeof(cmd));
 		X_DEBUG(("send len:%d", send_ret));
 		if(send_ret != sizeof(cmd))
 		{
@@ -107,12 +105,6 @@ INT32 Xmodem_SendCmd(INT32 dev, UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
 		{
 			send_len += 1;
 			break;
-		}
-	
-		if(Device_Select(dev, timeout) <= 0)
-		{
-			retry_time--;
-			continue;
 		}
 
 		recCmdAckFlg = true;
@@ -152,7 +144,7 @@ INT32 Xmodem_SendCmd(INT32 dev, UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
 
 
 //ret 
-INT32 Xmodem_RecvOnce(xmodem_t *x, INT32 dev, UINT8 **dst, INT32 timeout)
+static INT32 Xmodem_RecvOnce(sn_t *x, UINT8 **dst, INT32 timeout)
 {
     INT32 ret = 0;
     UINT8 tx_cmd = XMODEM_CMD_NAK;
@@ -240,7 +232,7 @@ recv_tx_ack:
 
     //todo
     X_DEBUG(("\r\n>"));
-    Xmodem_SendCmd(dev, tx_cmd, 0, timeout);
+    Xmodem_SendCmd(tx_cmd, 0, timeout);
     X_DEBUG(("ex2\r\n"));
     return ret;
 }
@@ -271,7 +263,7 @@ done:
 	return ret;
 }
 
-INT32 Xmodem_SendOnce(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeout)
+static INT32 Xmodem_SendOnce(sn_t *x, UINT8 *src, INT32 len, INT32 timeout)
 {
 	INT32 ret = 0;
 	INT32 send_len = 0;
@@ -286,7 +278,7 @@ INT32 Xmodem_SendOnce(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeo
 	/* tx soh,sig,stx */
 	while((retry_time--) > 0)
 	{	
-		if(Device_Send(dev, send_buf, sizeof(send_buf), timeout) != sizeof(send_buf))
+		if(UART_appWrite(send_buf, sizeof(send_buf)) != sizeof(send_buf))
 		{
 			continue;
 		}
@@ -329,7 +321,7 @@ INT32 Xmodem_SendOnce(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeo
 	return ret;
 }
 
-INT32 Xmodem_Send(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeout)
+INT32 Xmodem_Send(sn_t *x, UINT8 *src, INT32 len, INT32 timeout)
 {
 	UINT8 *ptr = src;
 	INT32 left_len = len;
@@ -342,7 +334,7 @@ INT32 Xmodem_Send(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeout)
 	/* send data */
 	while(left_len > 0)
 	{	
-		send_len_once = Xmodem_SendOnce(x, dev, ptr, left_len, timeout);
+		send_len_once = Xmodem_SendOnce(x, ptr, left_len, timeout);
 		if(send_len_once > 0) //ack
 		{
 			ptr += send_len_once;
@@ -365,7 +357,7 @@ INT32 Xmodem_Send(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeout)
 	if(left_len <= 0)
 	{
 	    X_DEBUG(("\r\n>"));
-		if(Xmodem_SendCmd(dev, XMODEM_CMD_EOT, 1, timeout) != 1)
+		if(Xmodem_SendCmd(XMODEM_CMD_EOT, 1, timeout) != 1)
 		{
 			send_len_total = 0;
 		}
@@ -374,20 +366,20 @@ INT32 Xmodem_Send(xmodem_t *x, INT32 dev, UINT8 *src, INT32 len, INT32 timeout)
 	return send_len_total;
 }
 
-void Xmodem_Reset(xmodem_t *x)
+void Xmodem_Reset(sn_t *x)
 {
-	memset(x, 0, sizeof(xmodem_t));
+	memset(x, 0, sizeof(sn_t));
 }
 
 
-void Xmodem_InitCallback(void)
+void Xmodem_DataInit(void)
 {
-	memset(&xcb, 0 , sizeof(xmodem_t));
+	memset(&xcb, 0 , sizeof(sn_t));
 	memset(xcb_buf, 0, sizeof(xcb_buf));
 	xcb_recv_len = 0;
 }
 
-INT32 Xmodem_RecvCallBack(void)
+INT32 Xmodem_Recv(void)
 {
 //	INT32 copy_len = 0;
 //	INT32 dst_len = 0;
@@ -396,7 +388,7 @@ INT32 Xmodem_RecvCallBack(void)
 	UINT8 *pRecv = NULL;
 
 	X_DEBUG((">en5:"));
-	rec_date_len = Xmodem_RecvOnce(&xcb, 1, &pRecv, 100);
+	rec_date_len = Xmodem_RecvOnce(&xcb, &pRecv, 100);
 	if(rec_date_len < 0)
 	{
 		ret = -1;
@@ -437,13 +429,13 @@ done:
 	return ret;
 }
 
-UINT8 *Xmodem_GetCallbackData(UINT32 *len)
+UINT8 *Xmodem_GetData(UINT32 *len)
 {
 	*len = xcb_recv_len;
 	return xcb_buf;
 }
 
-INT32 Xmodem_RecvToFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 dst_len, INT32 timeout)
+INT32 Xmodem_RecvToFlash(sn_t *x, UINT32 addr, INT32 dst_len, INT32 timeout)
 {
 	INT32 recv_len_total = 0;
 	INT32 recv_len_once = 0;
@@ -453,14 +445,8 @@ INT32 Xmodem_RecvToFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 dst_len, INT
 	X_DEBUG((">en6:"));
 	while((dst_len > 0) || (x->last_recv_cmd != XMODEM_CMD_EOT))
 	{
-		if(Device_Select(dev, timeout) <= 0)
-		{
-			X_DEBUG(("timeout!"));
-			break;
-		}
-
         if (true == Device_Recv_pend(EVENT_WAIT_US(1000000))){
-            recv_len_once = Xmodem_RecvOnce(x, dev, &pRecv, timeout);
+            recv_len_once = Xmodem_RecvOnce(x, &pRecv, timeout);
         }else {
             recv_len_once = -1;
         }
@@ -504,7 +490,7 @@ INT32 Xmodem_RecvToFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 dst_len, INT
 	return recv_len_total;
 }
 
-INT32 Xmodem_SendFromFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 len, INT32 timeout)
+INT32 Xmodem_SendFromFlash(sn_t *x, UINT32 addr, INT32 len, INT32 timeout)
 {
 	UINT32 paddr = addr;
 	INT32 left_len = len;
@@ -527,7 +513,7 @@ INT32 Xmodem_SendFromFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 len, INT32
 			break;
 		}
 		
-		send_len_once = Xmodem_SendOnce(x, dev, send_buf, copy_len, timeout);
+		send_len_once = Xmodem_SendOnce(x, send_buf, copy_len, timeout);
 		if(send_len_once > 0) //ack
 		{
 			paddr += send_len_once;
@@ -549,7 +535,7 @@ INT32 Xmodem_SendFromFlash(xmodem_t *x, INT32 dev, UINT32 addr, INT32 len, INT32
 	/* all data has been sent, send eot */
 	if(left_len <= 0)
 	{
-		if(Xmodem_SendCmd(dev, XMODEM_CMD_EOT, 1, timeout) != 1)
+		if(Xmodem_SendCmd(XMODEM_CMD_EOT, 1, timeout) != 1)
 		{
 			send_len_total = 0;
 		}
@@ -571,7 +557,7 @@ void readCallback(UART_Handle handle, void *rxBuf, size_t size)
     }else if (XMODEM_LEN_CMD==size || XMODEM_LEN_ALL==size){
         Event_communicateSet(EVENT_COMMUNICATE_RX_HANDLE);
     }else{
-        Xmodem_InitCallback();
+        Xmodem_DataInit();
     }
     xcb_recv_len_once = size;
     UART_appRead(recv_once_buf, XMODEM_LEN_ALL);

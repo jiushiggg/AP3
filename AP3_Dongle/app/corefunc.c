@@ -6,6 +6,7 @@
 #include "flash.h"
 #include "debug.h"
 #include "corefunc.h"
+#include "protocol.h"
 
 
 void Core_ParseFlashData(UINT32 addr)
@@ -43,17 +44,16 @@ UINT8 Core_MallocFlash(UINT32 *addr, UINT32 size)
 
 UINT8 Core_RecvDataToFlash(UINT32 addr, UINT32 len)
 {
-	xmodem_t x;
-	memset(&x, 0, sizeof(xmodem_t));
+	sn_t x;
+	memset(&x, 0, sizeof(sn_t));
 	
-	if(Xmodem_RecvToFlash(&x, 1, addr, len, 5000) >= len)
+	if(protocol_recvToFlash(&x, addr, len, 5000) >= len)
 	{
-	    GGGDEBUG(("Core_RecvDataToFlashOK\r\n"));
 		pdebug("Core_RecvDataToFlash() ok.\r\n");
 		return 1;		
 	}
 	else
-	{   GGGDEBUG(("Core_RecvDataToFlashERR\r\n"));
+	{
 		perr("Core_RecvDataToFlash() fail!\r\n");
 		return 0;
 	}
@@ -61,11 +61,11 @@ UINT8 Core_RecvDataToFlash(UINT32 addr, UINT32 len)
 
 UINT8 Core_SendDataFromFlash(UINT32 addr, UINT32 len)
 {
-	xmodem_t x;
+	sn_t x;
 	
-	memset(&x, 0, sizeof(xmodem_t));
+	memset(&x, 0, sizeof(sn_t));
 	
-	if(Xmodem_SendFromFlash(&x, 1, addr, len, 5000) >= len)
+	if(protocol_sendFromFlash(&x, addr, len, 5000) >= len)
 	{
 		pdebug("Core_SendDataFromFlash() ok.\r\n");
 		return 1;		
@@ -79,11 +79,11 @@ UINT8 Core_SendDataFromFlash(UINT32 addr, UINT32 len)
 
 UINT8 Core_SendData(UINT8 *src, UINT32 len)
 {
-	xmodem_t x;
+	sn_t x;
 	
-	memset(&x, 0, sizeof(xmodem_t));
+	memset(&x, 0, sizeof(sn_t));
 	
-	if(Xmodem_Send(&x, 1, src, len, 5000) >= len)
+	if(protocol_send(&x, src, len, 5000) >= len)
 	{
 		pdebug("Core_SendData() ok.\r\n");
 		return 1;		

@@ -2,6 +2,7 @@
 #define _CORE_H_
 
 #include <stdint.h>
+#include "protocol.h"
 #include "datatype.h"
 #include "xmodem.h"
 
