@@ -13,6 +13,13 @@
 
 #define DEBUG_LEVEL_DFAULT		DEBUG_LEVEL_DEBUG
 
+
+typedef enum{
+    DEBUG_SPI = (uint8_t)0,
+    DEBUG_UART = (uint8_t)1,
+}em_debug_peripheral;
+
+
 UINT8 Debug_GetLevel(void);
 void Debug_SetLevel(UINT8 new_level);
 void pdebughex(UINT8 *src, UINT16 len);
@@ -22,7 +29,7 @@ void pinfo(const char *format, ...);
 void pprint(const char *format, ...);
 void phex(UINT8 *src, UINT16 len);
 void perrhex(UINT8 *src, UINT16 len);
-void debug_peripheral_init(void);
+extern void debug_peripheral_init(void);
 void log_print(const char *fmt, ...);
 void pinfoEsl(const char *format, ...);
 

@@ -6,18 +6,73 @@
  *      private protocol
  *      SN(1Byte) | LEN(2Byte) | Data(0-512) | CRC(2Byte)
  *      SN：子板成功接收数据后，SN号加1。返回给母板，母板用SN号组下一包数据。
- *      LEN:length。最后一包数据长度最高位置1（0x8000）。
+ *      LEN:length。最后一包数据由bit12位置1（0x1000）表示。
  *      Data:data
  *      CRC: sn+len+data的CRC。
  *
  */
+#include <stdint.h>
+#include "SPI_private.h"
+#include "appSPI.h"
+
+void SPIPrivate_dataInit(void);
+int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
+int32_t SPIPrivate_recv(void);
+uint8_t *SPIPrivate_getData(uint32_t *len);
+int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout);
+int32_t SPIPrivate_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
+
+st_protocolFnxTable SPIPrivateFnx={
+.dataInitFnx    =   SPIPrivate_dataInit,
+.sendFnx        =   SPIPrivate_send,
+.recvFnx        =   SPIPrivate_recv,
+.getDataFnx     =   SPIPrivate_getData,
+.sendFromFlashFnx = SPIPrivate_sendFromFlash,
+.recvToFlashFnx =   SPIPrivate_recvToFlash
+};
 
 
-
-void SPI_PrivateDataInit(void);
+void SPIPrivate_dataInit(void)
 {
 
 }
 
+int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout)
+{
+
+}
+
+int32_t SPIPrivate_recv(void)
+{
+
+}
+
+uint8_t *SPIPrivate_getData(uint32_t *len)
+{
+
+}
+
+int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout)
+{
+
+}
+
+int32_t SPIPrivate_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout)
+{
+
+}
+
+
+void transferCallback(SPI_Handle handle, SPI_Transaction *transaction)
+{
+//    uint16_t i;
+//    uint8_t *pr = transaction->rxBuf;
+//    uint8_t *pt = transaction->txBuf;
+//    // Start another transfer
+//    for (i=0; i<sizeof(txbuf); i++){
+//        pt[i] = pr[i];
+//    }
+    SPI_transfer(handle, transaction);
+}
 
 

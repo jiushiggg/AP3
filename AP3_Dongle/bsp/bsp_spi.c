@@ -43,7 +43,7 @@
  Release Name: simplelink_cc2640r2_sdk_1_40_00_45
  Release Date: 2017-07-20 17:16:59
  *****************************************************************************/
-#include <bsp.h>
+#include "bsp.h"
 #include <bsp_spi.h>
 #include <driverlib/ssi.h>
 #include <driverlib/gpio.h>
@@ -71,7 +71,7 @@ static int spiPostNotify(unsigned int eventType, uintptr_t eventArg, uintptr_t c
 /**
  * Write a command to SPI
  */
-int bspSpiWrite(const uint8_t *buf, size_t len)
+int bspSpiWrite(const uint8_t *buf, uint16_t len)
 {
   while (len > 0)
   {
@@ -89,7 +89,7 @@ int bspSpiWrite(const uint8_t *buf, size_t len)
 /**
  * Read from SPI
  */
-int bspSpiRead(uint8_t *buf, size_t len)
+int bspSpiRead(uint8_t *buf, uint16_t len)
 {
   while (len > 0)
   {

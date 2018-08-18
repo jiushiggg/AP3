@@ -2,21 +2,43 @@
 #include <string.h>
 #include <stdarg.h>
 #include "debug.h"
-#include "Board.h"
 #include "bsp_spi.h"
+#include "bsp_uart.h"
 #include "bsp.h"
+#include "sys_cfg.h"
 
 volatile UINT32 s_debug_level = DEBUG_LEVEL_DFAULT;
 
+#if defined(PCIE)
 #define GGGDELAY    8
+#elif defined(AP_3)
+#define GGGDELAY    0
+#else
+#define GGGDELAY    0
+#endif
 
 #define LOG_SIZE    64
 
 unsigned char debug_buf[LOG_SIZE];
+int (*debugWrite)(const uint8_t *buf, uint16_t len) ;
+
 
 void debug_peripheral_init(void)
 {
-    bspSpiOpen(4000000);
+    em_debug_peripheral type = DEBUG_PERIPHERAL;
+
+    switch (type){
+        case DEBUG_SPI:
+            bspSpiOpen(4000000);
+            debugWrite = bspSpiWrite;
+            break;
+        case DEBUG_UART:
+            my_UART_open();
+            debugWrite = UART_send;
+            break;
+        default:
+            break;
+    }
 }
 UINT8 Debug_GetLevel(void)
 {
@@ -42,10 +64,10 @@ void log_print(const char *fmt, ...)
     va_end(ap);
 
     len = strlen((char *)debug_buf);
-//    bspSpiWrite(ptr,len);
+//    debugWrite(ptr,len);
     for(i=0;i<len;i++)
     {
-        bspSpiWrite(ptr++,1);
+        debugWrite(ptr++,1);
         BSP_Delay10US(GGGDELAY);
 
     }
@@ -66,7 +88,7 @@ void pprint(const char *format, ...)
     len = strlen((char *)debug_buf);
     for(i=0;i<len;i++)
     {
-        bspSpiWrite(ptr++,1);
+        debugWrite(ptr++,1);
         BSP_Delay10US(GGGDELAY);
     }
 }
@@ -177,7 +199,7 @@ void pdebug(const char *format, ...)
 	    len = strlen((char *)debug_buf);
 	    for(i=0;i<len;i++)
 	    {
-	        bspSpiWrite(ptr++,1);
+	        debugWrite(ptr++,1);
 	        BSP_Delay10US(GGGDELAY);
 	    }
 	}
@@ -200,7 +222,7 @@ void perr(const char *format, ...)
 	    len = strlen((char *)debug_buf);
 	    for(i=0;i<len;i++)
 	    {
-	        bspSpiWrite(ptr++,1);
+	        debugWrite(ptr++,1);
 	        BSP_Delay10US(GGGDELAY);
 	    }
 	}
@@ -224,7 +246,7 @@ void pinfo(const char *format, ...)
 	    len = strlen((char *)debug_buf);
 	    for(i=0;i<len;i++)
 	    {
-	        bspSpiWrite(ptr++,1);
+	        debugWrite(ptr++,1);
 	        BSP_Delay10US(GGGDELAY);
 	    }
 	}
@@ -259,7 +281,7 @@ void pdebug(const char *format, ...)
         len = strlen((char *)debug_buf);
         for(i=0;i<len;i++)
         {
-            bspSpiWrite(ptr++,1);
+            debugWrite(ptr++,1);
             BSP_Delay10US(GGGDELAY);
         }
     }
@@ -282,7 +304,7 @@ void pinfo(const char *format, ...)
         len = strlen((char *)debug_buf);
         for(i=0;i<len;i++)
         {
-            bspSpiWrite(ptr++,1);
+            debugWrite(ptr++,1);
             BSP_Delay10US(GGGDELAY);
         }
     }
@@ -305,7 +327,7 @@ void pinfoEsl(const char *format, ...)
         len = strlen((char *)debug_buf);
         for(i=0;i<len;i++)
         {
-            bspSpiWrite(ptr++,1);
+            debugWrite(ptr++,1);
             BSP_Delay10US(GGGDELAY);
         }
     }
@@ -329,10 +351,10 @@ void log_print(const char *fmt, ...)
     va_end(ap);
 
     len = strlen((char *)debug_buf);
-//    bspSpiWrite(ptr,len);
+//    debugWrite(ptr,len);
     for(i=0;i<len;i++)
     {
-        bspSpiWrite(ptr++,1);
+        debugWrite(ptr++,1);
         BSP_Delay10US(GGGDELAY);
 
     }

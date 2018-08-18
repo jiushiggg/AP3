@@ -8,6 +8,7 @@
 #ifndef PROTOCOL_SPI_PRIVATE_H_
 #define PROTOCOL_SPI_PRIVATE_H_
 #include <stdint.h>
+#include "protocol.h"
 
 #pragma pack(1)
 
@@ -20,6 +21,6 @@ typedef struct st_SPI_private{
 
 #pragma pack()
 
-extern void SPI_PrivateDataInit(void);
+extern st_protocolFnxTable SPIPrivateFnx;
 
 #endif /* PROTOCOL_SPI_PRIVATE_H_ */

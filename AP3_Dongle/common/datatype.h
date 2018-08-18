@@ -7,6 +7,7 @@
 #ifndef COMMON_DATATYPE_H_
 #define COMMON_DATATYPE_H_
 
+#include <stdint.h>
 typedef unsigned char       UINT8;
 typedef signed char         INT8;
 typedef unsigned short      UINT16;

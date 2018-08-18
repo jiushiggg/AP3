@@ -14,7 +14,7 @@
 
 st_protocolConfig protocolConfig[PROTOCOL_NUM] = {
 {
-.protocolFnxPtr = NULL,
+.protocolFnxPtr = &SPIPrivateFnx,
 },
 {
  .protocolFnxPtr = &xmodemFnx,

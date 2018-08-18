@@ -80,14 +80,14 @@ extern void bspSpiFlush(void);
  *
  * @return True when successful.
  */
-extern int bspSpiRead( uint8_t *buf, size_t length);
+extern int bspSpiRead( uint8_t *buf, uint16_t length);
 
 /**
  * Write to an SPI device
  *
  * @return True when successful.
  */
-extern int bspSpiWrite(const uint8_t *buf, size_t length);
+extern int bspSpiWrite(const uint8_t *buf, uint16_t length);
 
 #ifdef __cplusplus
 }
