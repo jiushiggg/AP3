@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "Board.h"
 #include "xmodem.h"
+#include "sys_cfg.h"
 
 
 UART_Handle uart_handle;
@@ -23,7 +24,7 @@ extern uint8_t recv_once_buf[XMODEM_LEN_ALL];
 void UART_appInit(void)
 {
     UART_Params uartParams;
-
+#ifdef PCIE
     /* Call driver init functions */
 
     /* Create a UART with data processing off. */
@@ -48,6 +49,7 @@ void UART_appInit(void)
     /* Loop forever echoing */
 
     UART_read(uart_handle, recv_once_buf, XMODEM_LEN_ALL);
+#endif
 }
 
 

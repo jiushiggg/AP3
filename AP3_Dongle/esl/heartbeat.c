@@ -98,53 +98,59 @@ len == 26
 0x80: new e31
 */
 
+
 static INT32 _check_hb_data(UINT8 *src, UINT8 len)
 {
-	UINT8 ctrl = 0;
-	UINT8 id[4] = {0};
-	UINT16 read_crc=0, cal_crc=0;
-	if (CTRL_OF_STREQ == src[0]){
-	    return SURVEY_DATA;
-	}else if(CTRL_OF_RCREQ == src[0]){
-        return RC_UPLINK_DATA;
+    UINT8 ctrl = 0;
+    UINT8 id[4] = {0};
+    UINT16 read_crc=0, cal_crc=0;
+    if (CTRL_OF_STREQ == src[0]){
+        ctrl = src[0];
+    }else if(CTRL_OF_RCREQ == src[0]){
+        ctrl = src[0];
     }else{
-	    ctrl = src[0] & 0xF0;
-	}
-	if(len == 16) 
-	{
-		//need check crc
-		memcpy(&read_crc, src+len-2, sizeof(read_crc));
-		if(ctrl == 0xC0)
-		{
-			cal_crc = CRC16_CaculateStepByStep(cal_crc, src, len-2);
-			if(cal_crc == read_crc)
-			{
-				return NORMAL_DATA;
-			}
-		}
-		else if((ctrl==0xF0)||(ctrl==0x50)||(ctrl==0xE0))
-		{
-			memcpy(id, src+5, sizeof(id));
-			cal_crc = CRC16_CaculateStepByStep(cal_crc, src, len-2);
-			cal_crc = CRC16_CaculateStepByStep(cal_crc, id, sizeof(id));
-			if(cal_crc == read_crc)
-			{
-				return NORMAL_DATA;
-			}
-		}
-	}
-	else if(len == 26)
-	{
-		if(ctrl == CTRL_HEARTBEAT){
-			return NORMAL_DATA;
-		}else if (ctrl == CTRL_ESL_UPLINK_DATA){
-		    return ESL_UPLINK_DATA;
-		}else {
-		    return ERR_DATA;
-		}
-	}
+        ctrl = src[0] & 0xF0;
+    }
+    if(len == 16)
+    {
+        //need check crc
+        memcpy(&read_crc, src+len-2, sizeof(read_crc));
+        if(ctrl == 0xC0)
+        {
+            cal_crc = CRC16_CaculateStepByStep(cal_crc, src, len-2);
+            if(cal_crc == read_crc)
+            {
+                return NORMAL_DATA;
+            }
+        }
+        else if((ctrl==0xF0)||(ctrl==0x50)||(ctrl==0xE0))
+        {
+            memcpy(id, src+5, sizeof(id));
+            cal_crc = CRC16_CaculateStepByStep(cal_crc, src, len-2);
+            cal_crc = CRC16_CaculateStepByStep(cal_crc, id, sizeof(id));
+            if(cal_crc == read_crc)
+            {
+                return NORMAL_DATA;
+            }
+        }
 
-	return ERR_DATA;
+    }
+    else if(len == 26)
+    {
+        if(ctrl == CTRL_HEARTBEAT){
+            return NORMAL_DATA;
+        }else if (ctrl == CTRL_ESL_UPLINK_DATA){
+            return ESL_UPLINK_DATA;
+        }else if (ctrl == CTRL_OF_RCREQ){
+            return RC_UPLINK_DATA;
+        }else if (ctrl == CTRL_OF_STREQ){
+            return SURVEY_DATA;
+        }else {
+            return ERR_DATA;
+        }
+    }
+
+    return ERR_DATA;
 }
 
 static INT32 _compare_esl_uplink_info_by_index(const void *info1, const void *info2)

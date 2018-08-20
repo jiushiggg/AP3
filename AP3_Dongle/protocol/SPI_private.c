@@ -40,38 +40,33 @@ void SPIPrivate_dataInit(void)
 int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout)
 {
 
+    return 0;
 }
 
 int32_t SPIPrivate_recv(void)
 {
-
+    return 0;
 }
 
 uint8_t *SPIPrivate_getData(uint32_t *len)
 {
-
+    return ;
 }
 
 int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout)
 {
-
+    return 0;
 }
 
 int32_t SPIPrivate_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout)
 {
-
+    return 0;
 }
 
 
 void transferCallback(SPI_Handle handle, SPI_Transaction *transaction)
 {
-//    uint16_t i;
-//    uint8_t *pr = transaction->rxBuf;
-//    uint8_t *pt = transaction->txBuf;
-//    // Start another transfer
-//    for (i=0; i<sizeof(txbuf); i++){
-//        pt[i] = pr[i];
-//    }
+
     SPI_transfer(handle, transaction);
 }
 
