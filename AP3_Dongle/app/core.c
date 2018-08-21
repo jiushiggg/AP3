@@ -45,36 +45,37 @@ core_task_t local_task;
 volatile UINT32 core_idel_flag = 0;
 void (*tim_soft_callback)(void);
 
-
-uint8_t Core_SendCmd(uint16_t cmd, uint32_t cmd_len, uint8_t *cmd_data)
+//参数ack_data的地址不能与local_task.ack_buf的地址有冲突。
+uint8_t Core_SendAck(uint16_t ack_cmd, uint32_t ack_len, uint8_t *ack_data)
 {
     INT32 tx_ack_ret = 0;
     UINT8 ret = 0;
+    INT32 len = ack_len+2+4;
     sn_t x;
 
-    if((cmd_len+2+4) > sizeof(xcb_buf))
+    if(len > sizeof(un_ack_buf))
     {
-        perr("Core_SendCmd() cmd len too big.\r\n");
+        perr("Core_SendAck() cmd len too big.\r\n");
         goto done;
     }
+    memcpy((void *)&local_task.ack, (void *)&ack_cmd, sizeof(ack_cmd));
+    memcpy((void *)&local_task.ack_len, (void *)&ack_len, sizeof(ack_len));
 
-    memcpy(xcb_buf, (void *)&cmd, sizeof(cmd));
-    memcpy(xcb_buf+2, (void *)&cmd_len, sizeof(cmd_len));
-    if((cmd_len!=0) && (cmd_data!=NULL))
+    if((ack_len!=0) && (ack_data!=NULL) && ack_data!=(uint8_t*)&local_task.ack_buf)
     {
-        memcpy(xcb_buf+6, cmd_data, cmd_len);
+        memcpy((uint8_t*)&local_task.ack_buf, ack_data, ack_len);
     }
     memset(&x, 0, sizeof(sn_t));
 
-    tx_ack_ret = protocol_send(&x, xcb_buf, cmd_len+2+4, 5000);
-    if(tx_ack_ret == (cmd_len+2+4))
+    tx_ack_ret = protocol_send(&x, (uint8_t*)&local_task.ack, len, 5000);
+    if(tx_ack_ret == len)
     {
-        pdebug("Core_SendCmd 0x%04X\r\n", cmd);
+        pdebug("Core_SendAck 0x%04X\r\n", ack_cmd);
         ret = 1;
     }
     else
     {
-        perr("Core_SendCmd 0x%04X return %d\r\n", cmd, tx_ack_ret);
+        perr("Core_SendAck 0x%04X return %d\r\n", ack_cmd, tx_ack_ret);
         ret = 0;
     }
 
@@ -101,15 +102,12 @@ void Core_Init(void)
 	core_idel_flag = 0;
 	
 	memset(&local_task, 0 , sizeof(core_task_t));
-	
-	protocol_dataInit();
-
 }
 
 void Core_TxHandler(void)
 {
 	/* tx ack */	
-	if(Core_SendCmd(local_task.ack, local_task.ack_len, local_task.ack_ptr) == 0)
+	if(Core_SendAck(local_task.ack, local_task.ack_len, local_task.ack_ptr) == 0)
 	{
 		perr("Core_TxHandler tx cmd 0x%04X\r\n", local_task.ack);
 	}
@@ -121,12 +119,9 @@ void Core_TxHandler(void)
 
 void Core_RxHandler(void)
 {
-	memset(&local_task, 0 , sizeof(core_task_t));
-	
-	local_task.data_ptr = protocol_getData(&local_task.data_len);
 	memcpy((void *)&local_task.cmd, local_task.data_ptr, 2);
 	memcpy((void *)&local_task.cmd_len, local_task.data_ptr+2, 4);
-	pinfo("Core_RxHandler cmd=0x%04X, cmd len=%d\r\n", local_task.cmd, local_task.cmd_len);
+	pinfo("Core_RxHandler cmd=0x%04X,len=%d\r\n", local_task.cmd, local_task.cmd_len);
 //	pdebughex(local_task.data_ptr, local_task.data_len);
 	if(local_task.cmd_len > sizeof(local_task.cmd_buf.buf))
 	{
@@ -194,10 +189,10 @@ void Core_RxHandler(void)
             Core_HandleCalibrateFreq(&local_task);
             break;
 		default:
+		    memset(&local_task, 0 , sizeof(core_task_t));
 			perr("Core_RxHandler() invalid cmd: 0x%04X\r\n", local_task.cmd);
 			break;
 	}
-	
 done:
 	return;
 }
@@ -205,18 +200,18 @@ extern INT32 wakeup_start(UINT32 addr, UINT32 len, UINT8 type);
 
 void readHandleFnx(void)
 {
-    int16_t ret = 0;
-    ret = protocol_recv();
-    if(ret > CORE_CMD_LEN){
-        perr("Xmodem_RecvCallBack recv too big data(%d) to handle.\r\n", ret);
-        protocol_dataInit();
-    }else if((ret > 0)&&(ret <=XCB_BUF_SIZE)){
-        EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv data len = %d.\r\n", ret));
+    local_task.data_ptr = local_task.cmd_buf.buf;
+    local_task.data_len = protocol_recv(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
+    if(local_task.data_len > CORE_CMD_LEN){
+        perr("Xmodem_RecvCallBack recv too big data(%d) to handle.\r\n", local_task.data_len);
+        protocol_dataInit(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
+    }else if((local_task.data_len > 0)&&(local_task.data_len <=TRANS_BUF_SIZE)){
+        EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv data len = %d.\r\n", local_task.data_len));
         Core_RxHandler();
-        protocol_dataInit();
-    }else if(ret < 0){
-        EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv error(%d)!\r\n", ret));
-        protocol_dataInit();
+        protocol_dataInit(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
+    }else if(local_task.data_len < 0){
+        EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv error(%d)!\r\n", local_task.data_len));
+        protocol_dataInit(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
     }else{
         EP_DEBUG(("\r\n>>>EP1_OUT_Callback.\r\n"));
     }
@@ -245,7 +240,7 @@ void Core_Mainloop(void)
             //BSP_lowGPIO(DEBUG_TEST);
             if(Core_MallocFlash(&local_task.flash_data_addr, local_task.flash_data_len) == 1){
                 //BSP_highGPIO(DEBUG_TEST);
-                if(Core_SendCmd(CORE_CMD_ACK, 0, NULL) == 1){
+                if(Core_SendAck(CORE_CMD_ACK, 0, NULL) == 1){
                     //BSP_lowGPIO(DEBUG_TEST);
 
                     if(Core_RecvDataToFlash(local_task.flash_data_addr, local_task.flash_data_len) == 1){
@@ -256,7 +251,7 @@ void Core_Mainloop(void)
 
                 }
             } else {
-                Core_SendCmd(CORE_CMD_FLASH_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_FLASH_ERROR, 0, NULL);
             }
             pinfo("cp2flash exit\r\n");
             Event_Clear(EVENT_COMMUNICATE_RX_TO_FLASH);
@@ -267,7 +262,7 @@ void Core_Mainloop(void)
         }
         if(event & EVENT_COMMUNICATE_SCAN_DEVICE){
             pinfo("core uart send ack.\r\n");
-            Core_SendCmd(CORE_CMD_ACK, 0, NULL);
+            Core_SendAck(CORE_CMD_ACK, 0, NULL);
             Event_Clear(EVENT_COMMUNICATE_SCAN_DEVICE);
         }
         if(event & EVENT_PARSE_DATA)
@@ -289,7 +284,7 @@ void Core_Mainloop(void)
             {
                 pinfo("this_updata err.\r\n");//ggg debug
                 perr("core malloc g3 updata table!\r\n");
-                Core_SendCmd(CORE_CMD_RAM_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_RAM_ERROR, 0, NULL);
             }
             else
             {
@@ -317,11 +312,11 @@ void Core_Mainloop(void)
             if(hb_table == NULL)
             {
                 perr("core malloc g3 hb table!\r\n");
-                Core_SendCmd(CORE_CMD_RAM_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_RAM_ERROR, 0, NULL);
             }
             else
             {
-                if(Core_SendCmd(0x10f0, 0, NULL) == 1)
+                if(Core_SendAck(0x10f0, 0, NULL) == 1)
                 {
                     heartbeat_mainloop(local_task.cmd_buf.buf, local_task.cmd_len, hb_table, Core_SendData);
                 }
@@ -342,14 +337,14 @@ void Core_Mainloop(void)
             if(rcreq_table == NULL)
             {
                 perr("core malloc rcreq_table(size = %d)!\r\n", sizeof(rcreq_table_t));
-                Core_SendCmd(CORE_CMD_RAM_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_RAM_ERROR, 0, NULL);
             }
             else
             {
                 if(RcReq_ParseCmd(local_task.cmd_buf.buf, local_task.cmd_len, rcreq_table) < 0)
                 {
                     perr("RcReq_ParseCmd\r\n");
-                    Core_SendCmd(0x10FF, 0, NULL);
+                    Core_SendAck(0x10FF, 0, NULL);
                 }
                 else
                 {
@@ -384,14 +379,14 @@ void Core_Mainloop(void)
 //
 //            if(flag == 1)
 //            {
-//                if(Core_SendCmd(CORE_CMD_ACK, 0, NULL) == 1)
+//                if(Core_SendAck(CORE_CMD_ACK, 0, NULL) == 1)
 //                {
 //                    Core_HandleSoftReboot();
 //                }
 //            }
 //            else
 //            {
-//                Core_SendCmd(0x10FF, 0, NULL);
+//                Core_SendAck(0x10FF, 0, NULL);
 //            }
 //            Event_Clear(EVENT_FW_UPDATA);
 //        }
@@ -405,7 +400,7 @@ void Core_Mainloop(void)
             uint16_t ack;
             pinfo("calibrate frequency\r\n");
             ack = calibrate_freq(&local_task);
-            Core_SendCmd(ack, local_task.ack_len, local_task.ack_ptr);
+            Core_SendAck(ack, local_task.ack_len, local_task.ack_ptr);
             Event_Clear(EVENT_CALIBRATE_FREQ);
         }
         if (event & EVENT_CALIBRATE_POWER)
@@ -413,7 +408,7 @@ void Core_Mainloop(void)
             uint16_t ack;
             pinfo("calibrate power\r\n");
             ack = calibrate_power(&local_task);
-            Core_SendCmd(ack, local_task.ack_len, local_task.ack_ptr);
+            Core_SendAck(ack, local_task.ack_len, local_task.ack_ptr);
             Event_Clear(EVENT_CALIBRATE_POWER);
         }
         if(event & EVENT_SYSTEM_REBOOT)
@@ -431,17 +426,17 @@ void Core_Mainloop(void)
             fret = rft_check_ber_data(local_task.cmd_buf.buf, local_task.cmd_len);
             if(fret < 0)
             {
-                Core_SendCmd(CORE_CMD_PARA_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_PARA_ERROR, 0, NULL);
             }
             else if(fret != 0) //test board
             {
-                Core_SendCmd(CORE_CMD_ACK, 0, NULL);
+                Core_SendAck(CORE_CMD_ACK, 0, NULL);
                 rft_ber(local_task.ack_buf.buf, sizeof(local_task.ack_buf.buf));
             }
             else //gold board
             {
                 fret = rft_ber(local_task.ack_buf.buf, sizeof(local_task.ack_buf.buf));
-                Core_SendCmd(CORE_CMD_ACK, fret, local_task.ack_buf.buf);
+                Core_SendAck(CORE_CMD_ACK, fret, local_task.ack_buf.buf);
             }
             Event_Clear(EVENT_FT_BER);
         }
@@ -454,11 +449,11 @@ void Core_Mainloop(void)
             fret = rft_scan_bg(local_task.cmd_buf.buf, local_task.cmd_len, local_task.ack_buf.buf, sizeof(local_task.ack_buf.buf));
             if(fret <= 0)
             {
-                Core_SendCmd(CORE_CMD_ERROR, 0, NULL);
+                Core_SendAck(CORE_CMD_ERROR, 0, NULL);
             }
             else
             {
-                Core_SendCmd(CORE_CMD_ACK, fret, local_task.ack_buf.buf);
+                Core_SendAck(CORE_CMD_ACK, fret, local_task.ack_buf.buf);
             }
             Event_Clear(EVENT_SCAN_BG);
         }
@@ -470,13 +465,13 @@ void Core_Mainloop(void)
 
             if(p_assap_ack_table == NULL)
             {
-                Core_SendCmd(0x10F4, 0, NULL);
+                Core_SendAck(0x10F4, 0, NULL);
             }
             else
             {
                 if(assap_ack_parse_cmd(local_task.cmd_buf.buf, local_task.cmd_len, p_assap_ack_table) < 0)
                 {
-                    Core_SendCmd(0x10FF, 0, NULL);
+                    Core_SendAck(0x10FF, 0, NULL);
                 }
                 else
                 {
@@ -502,13 +497,13 @@ void Core_Mainloop(void)
 
             if(assap_scanwkup_parse_cmd(local_task.cmd_buf.buf, local_task.cmd_len) < 0)
             {
-                Core_SendCmd(0x10FF, 0, NULL);
+                Core_SendAck(0x10FF, 0, NULL);
             }
             else
             {
                 if(ds == NULL)
                 {
-                    Core_SendCmd(0x10F4, 0, NULL);
+                    Core_SendAck(0x10F4, 0, NULL);
                 }
                 else
                 {

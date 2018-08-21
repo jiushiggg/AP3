@@ -9,6 +9,9 @@
 #define PROTOCOL_PROTOCOL_H_
 
 #include <stdint.h>
+#include "sys_cfg.h"
+#include "SPI_private.h"
+#include "xmodem.h"
 
 typedef enum {
     PROTOCOL_SPI    = (uint8_t)0,
@@ -25,9 +28,9 @@ typedef struct sn_t{
 }sn_t;
 
 typedef void    (*PROT_dataResetFnx)(sn_t *x);
-typedef void    (*PROT_dataInitFnx)(void);
+typedef void    (*PROT_dataInitFnx)(uint8_t* tmp_buf, uint16_t len);
 typedef int32_t (*PROT_sendFnx)(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
-typedef int32_t (*PROT_recvFnx)(void);
+typedef int32_t (*PROT_recvFnx)(uint8_t* tmp_buf, uint16_t tmp_len);
 typedef uint8_t* (*PROT_getDataFnx)(uint32_t* len);
 typedef int32_t (*PROT_recvToFlashFnx)(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout);
 typedef int32_t (*PROT_sendFromFlashFnx)(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
@@ -49,9 +52,18 @@ typedef struct st_protocolConfig{
 }st_protocolConfig;
 
 
-extern void protocol_dataInit(void);
+#if defined(PCIE)
+    #define TRANS_BUF_SIZE  XMODEM_LEN_ALL
+#elif defined(AP_3)
+    #define TRANS_BUF_SIZE  SPI_PRIV_LEN_ALL
+#else
+#endif
+extern uint8_t recv_once_buf[TRANS_BUF_SIZE];
+
+
+extern void protocol_dataInit(uint8_t* tmp_buf, uint16_t tmp_len);
 extern uint8_t *protocol_getData(uint32_t *len);
-extern int32_t protocol_recv(void);
+extern int32_t protocol_recv(uint8_t* tmp_buf, uint16_t tmp_len);
 extern int32_t protocol_recvToFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
 extern int32_t protocol_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
 extern int32_t protocol_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);

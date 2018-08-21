@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
-
 #include "xmodem.h"
+#include "protocol.h"
 #include "debug.h"
 #include "crc16.h"
 #include "flash.h"
@@ -34,18 +34,14 @@
 static volatile Bool recCmdAckFlg    =   false;
 static volatile Bool writeFlashFlg   = false;
 static sn_t xcb;
-#pragma location = (XCB_BUF_ADDR);
-UINT8 xcb_buf[XCB_BUF_SIZE] = {0};                  //protocol buffer
 INT32 xcb_recv_len = 0;                             //valid data length
-static volatile  INT32  xcb_recv_len_once = 0;
-#pragma location = (XMODEM_LEN_ALL_ADDR)
-UINT8 recv_once_buf[XMODEM_LEN_ALL] = {0};          //the buffer used for UART receiving data
+static volatile  INT16  xcb_recv_len_once = 0;
+static UINT8* xcb_ptr = NULL;
 
 
-
-void Xmodem_DataInit(void);
+void Xmodem_DataInit(UINT8* tmp_buf, UINT16 tmp_len);
 INT32 Xmodem_Send(sn_t *x, UINT8 *src, INT32 len, INT32 timeout);
-INT32 Xmodem_Recv(void);
+INT32 Xmodem_Recv(UINT8* tmp_buf, UINT16 tmp_len);
 UINT8 *Xmodem_GetData(UINT32 *len);
 INT32 Xmodem_RecvToFlash(sn_t *x, UINT32 addr, INT32 dst_len, INT32 timeout);
 INT32 Xmodem_SendFromFlash(sn_t *x, UINT32 addr, INT32 len, INT32 timeout);
@@ -372,14 +368,14 @@ void Xmodem_Reset(sn_t *x)
 }
 
 
-void Xmodem_DataInit(void)
+void Xmodem_DataInit(UINT8* tmp_buf, UINT16 tmp_len)
 {
 	memset(&xcb, 0 , sizeof(sn_t));
-	memset(xcb_buf, 0, sizeof(xcb_buf));
 	xcb_recv_len = 0;
+	xcb_ptr = NULL;
 }
 
-INT32 Xmodem_Recv(void)
+INT32 Xmodem_Recv(UINT8* tmp_buf, UINT16 tmp_len)
 {
 //	INT32 copy_len = 0;
 //	INT32 dst_len = 0;
@@ -420,7 +416,8 @@ INT32 Xmodem_Recv(void)
 #else
     if(rec_date_len > 0)
     {
-        memcpy(xcb_buf, pRecv, rec_date_len);
+        memcpy(tmp_buf, pRecv, rec_date_len);
+        xcb_ptr = tmp_buf;
         xcb_recv_len = rec_date_len;
     }
 #endif
@@ -432,7 +429,7 @@ done:
 UINT8 *Xmodem_GetData(UINT32 *len)
 {
 	*len = xcb_recv_len;
-	return xcb_buf;
+	return xcb_ptr;
 }
 
 INT32 Xmodem_RecvToFlash(sn_t *x, UINT32 addr, INT32 dst_len, INT32 timeout)
@@ -557,7 +554,8 @@ void readCallback(UART_Handle handle, void *rxBuf, size_t size)
     }else if (XMODEM_LEN_CMD==size || XMODEM_LEN_ALL==size){
         Event_communicateSet(EVENT_COMMUNICATE_RX_HANDLE);
     }else{
-        Xmodem_DataInit();
+        memset(recv_once_buf, 0, sizeof(recv_once_buf));
+        size = 0;
     }
     xcb_recv_len_once = size;
     UART_appRead(recv_once_buf, XMODEM_LEN_ALL);

@@ -2,9 +2,9 @@
 #define _CORE_H_
 
 #include <stdint.h>
-#include "protocol.h"
 #include "datatype.h"
-#include "xmodem.h"
+#include "sys_cfg.h"
+#include "protocol.h"
 
 #define CORE_CMD_SCAN_DEVICE            0x1006          //use uart 1step
 #define CORE_CMD_ESL_UPDATA_REQUEST		0x1041
@@ -56,19 +56,17 @@
 #else
 #define TASK1_STACKSIZE   (0)
 #endif
-#define TASK1_ADDR              (GPRAM_BASE+TASK0_STACKSIZE)
+#define TASK1_ADDR              (TASK0_ADDR+TASK0_STACKSIZE)
 
-
-#define XCB_BUF_ADDR            (GPRAM_BASE+TASK0_STACKSIZE+TASK1_STACKSIZE)
-
-
-#define XMODEM_LEN_ALL_SIZE     XMODEM_LEN_ALL
-#define XMODEM_LEN_ALL_ADDR     (GPRAM_BASE+TASK0_STACKSIZE+TASK1_STACKSIZE+XCB_BUF_SIZE)
+#define TRANS_BUF_ADDR          (TASK1_ADDR+TASK1_STACKSIZE)
 
 #define CORE_TASK_SIZE          (sizeof(core_task_t))
-#define CORE_TASK_ADDR          (GPRAM_BASE+TASK0_STACKSIZE+TASK1_STACKSIZE+XCB_BUF_SIZE+XMODEM_LEN_ALL_SIZE)
+#define CORE_TASK_ADDR          (TRANS_BUF_ADDR+TRANS_BUF_SIZE)
 
-#define CORE_CMD_LEN            XMODEM_LEN_ALL
+
+#define CORE_CMD_LEN            TRANS_BUF_SIZE
+
+
 
 #pragma pack(1)
 typedef enum{
@@ -149,21 +147,21 @@ typedef struct
     UINT32 cmd_len;
     un_cmd_buf cmd_buf;
     UINT8 *data_ptr;
-    UINT32 data_len;
+    INT32 data_len;
     UINT32 flash_data_addr;
     UINT32 flash_data_len;
     UINT32 flash_ack_addr;
     UINT32 flash_ack_len;
     UINT16 ack;
-    UINT8 ack_len;
-    UINT8 *ack_ptr;
+    UINT32 ack_len;
     un_ack_buf ack_buf;
+    UINT8 *ack_ptr;
 }core_task_t;
 
 
 #pragma pack()
 extern void Core_Init(void);
-extern void Core_RxHandler(void);
+
 extern void Core_TxHandler(void);
 extern void Core_Mainloop(void);
 extern UINT32 Core_GetQuitStatus(void);

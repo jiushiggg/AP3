@@ -37,7 +37,13 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
 
 }
 
-void SPI_appWrite()
+void SPI_appSend()
 {
 
 }
+
+void SPI_appRecv()
+{
+
+}
+

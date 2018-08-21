@@ -13,11 +13,12 @@
  */
 #include <stdint.h>
 #include "SPI_private.h"
+#include "protocol.h"
 #include "appSPI.h"
 
-void SPIPrivate_dataInit(void);
+void SPIPrivate_dataInit(uint8_t* tmp_buf, uint16_t tmp_len);
 int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
-int32_t SPIPrivate_recv(void);
+int32_t SPIPrivate_recv(uint8_t* tmp_buf, uint16_t tmp_len);
 uint8_t *SPIPrivate_getData(uint32_t *len);
 int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout);
 int32_t SPIPrivate_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
@@ -32,7 +33,7 @@ st_protocolFnxTable SPIPrivateFnx={
 };
 
 
-void SPIPrivate_dataInit(void)
+void SPIPrivate_dataInit(uint8_t* tmp_buf, uint16_t len)
 {
 
 }
@@ -43,14 +44,14 @@ int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout)
     return 0;
 }
 
-int32_t SPIPrivate_recv(void)
+int32_t SPIPrivate_recv(uint8_t* tmp_buf, uint16_t len)
 {
     return 0;
 }
 
 uint8_t *SPIPrivate_getData(uint32_t *len)
 {
-    return ;
+    return 0;
 }
 
 int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout)

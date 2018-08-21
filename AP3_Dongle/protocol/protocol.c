@@ -6,11 +6,18 @@
  */
 
 #include <stddef.h>
+#include "core.h"
 #include "sys_cfg.h"
 #include "protocol.h"
-#include "SPI_private.h"
-#include "xmodem.h"
 #include "crc16.h"
+
+
+#pragma location = (TRANS_BUF_ADDR)
+uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+
+extern st_protocolFnxTable xmodemFnx;
+extern st_protocolFnxTable SPIPrivateFnx;
+
 
 st_protocolConfig protocolConfig[PROTOCOL_NUM] = {
 {
@@ -22,9 +29,9 @@ st_protocolConfig protocolConfig[PROTOCOL_NUM] = {
 
 };
 
-void protocol_dataInit(void)
+void protocol_dataInit(uint8_t* tmp_buf, uint16_t tmp_len)
 {
-    protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->dataInitFnx();
+    protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->dataInitFnx(tmp_buf, tmp_len);
 }
 
 void Xmodem_reset(sn_t *x);
@@ -35,9 +42,9 @@ uint8_t *protocol_getData(UINT32 *len)
     return protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->getDataFnx(len);
 }
 
-int32_t protocol_recv(void)
+int32_t protocol_recv(uint8_t* tmp_buf, uint16_t tmp_len)
 {
-    return protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->recvFnx();
+    return protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->recvFnx(tmp_buf, tmp_len);
 }
 
 int32_t protocol_recvToFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout)

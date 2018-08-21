@@ -9,22 +9,21 @@
 
 
 #include <ti/drivers/uart/UARTCC26XX.h>
+#include "sys_cfg.h"
 #include "uart.h"
 #include "Board.h"
-#include "xmodem.h"
-#include "sys_cfg.h"
+#include "protocol.h"
 
 
 UART_Handle uart_handle;
 
 extern void readCallback(UART_Handle handle, void *rxBuf, size_t size);
-extern uint8_t recv_once_buf[XMODEM_LEN_ALL];
 
 
 void UART_appInit(void)
 {
-    UART_Params uartParams;
 #ifdef PCIE
+    UART_Params uartParams;
     /* Call driver init functions */
 
     /* Create a UART with data processing off. */
