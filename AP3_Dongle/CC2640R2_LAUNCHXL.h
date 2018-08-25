@@ -158,10 +158,12 @@ extern const PIN_Config BoardGpioInitTable[];
 #define CC2640R2_LAUNCHXL_UART_RX               IOID_2          /* RXD */
 #define CC2640R2_LAUNCHXL_UART_TX               IOID_3          /* TXD */
 
-#define CC2640R2_LAUNCHXL_SPI1_CSN              IOID_8          //pcb MISO
-#define CC2640R2_LAUNCHXL_SPI1_MOSI               IOID_9          //pcb MOSI
-#define CC2640R2_LAUNCHXL_SPI1_CLK              IOID_10          //pcb CLK
-#define CC2640R2_LAUNCHXL_SPI1_MISO               IOID_11         //pcb CSN
+#define CC2640R2_LAUNCHXL_SPI1_MISO              IOID_8          //pcb MISO
+#define CC2640R2_LAUNCHXL_SPI1_MOSI              IOID_9          //pcb MOSI
+#define CC2640R2_LAUNCHXL_SPI1_CLK               IOID_10          //pcb CLK
+#define CC2640R2_LAUNCHXL_SPI1_CSN               IOID_11         //pcb CSN
+
+
 #endif
 #define CC2640R2_LAUNCHXL_UART_CTS              IOID_19         /* CTS */
 #define CC2640R2_LAUNCHXL_UART_RTS              IOID_18         /* RTS */
@@ -245,7 +247,7 @@ typedef enum CC2640R2_LAUNCHXL_CryptoName {
  */
 typedef enum CC2640R2_LAUNCHXL_GPIOName {
     CC2640R2_LAUNCHXL_GPIO_SPI_FLASH_CS,
-
+    Board_SPI_SLAVE_READY,
     CC2640R2_LAUNCHXL_GPIOCOUNT
 } CC2640R2_LAUNCHXL_GPIOName;
 

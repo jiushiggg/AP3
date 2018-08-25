@@ -343,7 +343,7 @@ const uint_least8_t Display_count = 0;
  */
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/gpio/GPIOCC26XX.h>
-
+#include "sys_cfg.h"
 /*
  * Array of Pin configurations
  * NOTE: The order of the pin configurations must coincide with what was
@@ -355,7 +355,9 @@ const uint_least8_t Display_count = 0;
 GPIO_PinConfig gpioPinConfigs[] = {
     /* SPI Flash CSN */
     GPIOCC26XX_DIO_27 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
-//    GPIOCC26XX_DIO_12 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH
+#if defined(AP_3)
+    GPIOCC26XX_DIO_16 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH
+#endif
 };
 
 /*
@@ -545,6 +547,10 @@ const PIN_Config BoardGpioInitTable[] = {
     CC2640R2_LAUNCHXL_SPI0_MOSI | PIN_INPUT_EN | PIN_PULLDOWN,                                            /* SPI master out - slave in */
     CC2640R2_LAUNCHXL_SPI0_MISO | PIN_INPUT_EN | PIN_PULLDOWN,                                            /* SPI master in - slave out */
     CC2640R2_LAUNCHXL_SPI0_CLK | PIN_INPUT_EN | PIN_PULLDOWN,
+//    CC2640R2_LAUNCHXL_SPI1_MOSI | PIN_INPUT_EN | PIN_PULLDOWN,                                            /* SPI master out - slave in */
+//    CC2640R2_LAUNCHXL_SPI1_MISO | PIN_INPUT_EN | PIN_PULLDOWN,                                            /* SPI master in - slave out */
+//    CC2640R2_LAUNCHXL_SPI1_CLK | PIN_INPUT_EN | PIN_PULLDOWN,
+//    CC2640R2_LAUNCHXL_SPI1_CSN | PIN_INPUT_EN | PIN_PULLDOWN,
 
     /* SPI clock */
 

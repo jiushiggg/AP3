@@ -263,7 +263,23 @@ void pinfo(const char *format, ...)
 //        Task_sleep(100000);
 //    }
 #else
-void pdebughex(UINT8 *src, UINT16 len){}
+void pdebughex(UINT8 *src, UINT16 len){
+    uint16_t i=0;
+    //if(s_debug_level >= DEBUG_LEVEL_DEBUG)
+    {
+        for(i = 0; i < len; i++)
+        {
+            if(i != (len-1))
+            {
+                pinfo("%02X,", src[i]);
+            }
+            else
+            {
+                pinfo("%02X.\r\n", src[i]);
+            }
+        }
+    }
+}
 void pdebug(const char *format, ...)
 {
     int len = 0;
@@ -341,7 +357,7 @@ void log_print(const char *fmt, ...)
 {
     int len = 0;
     int i = 0;
-    BSP_lowGPIO(DEBUG_TEST);
+//    BSP_lowGPIO(DEBUG_TEST);
 
     uint8_t *ptr = debug_buf;
     memset(debug_buf,0,sizeof(debug_buf));
@@ -358,7 +374,7 @@ void log_print(const char *fmt, ...)
         BSP_Delay10US(GGGDELAY);
 
     }
-    BSP_highGPIO(DEBUG_TEST);
+//    BSP_highGPIO(DEBUG_TEST);
 }
 
 #endif

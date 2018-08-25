@@ -58,11 +58,10 @@
 #endif
 #define TASK1_ADDR              (TASK0_ADDR+TASK0_STACKSIZE)
 
-#define TRANS_BUF_ADDR          (TASK1_ADDR+TASK1_STACKSIZE)
-
 #define CORE_TASK_SIZE          (sizeof(core_task_t))
-#define CORE_TASK_ADDR          (TRANS_BUF_ADDR+TRANS_BUF_SIZE)
+#define CORE_TASK_ADDR          (TASK1_ADDR+TASK1_STACKSIZE)
 
+#define TRANS_BUF_ADDR          (CORE_TASK_ADDR+CORE_TASK_SIZE)
 
 #define CORE_CMD_LEN            TRANS_BUF_SIZE
 

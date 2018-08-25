@@ -180,10 +180,11 @@ void UART_receive(uint8_t *pui8Buffer, uint16_t ui16Size)
 //! \return None
 //
 //*****************************************************************************
+#include "CC2640R2_LAUNCHXL.h"
 #define CPU_FREQ      48000000ul
 #define UART_BAND   115200
-#define PIN_UART_RXD   IOID_3
-#define PIN_UART_TXD    IOID_2
+#define PIN_UART_RXD   CC2640R2_LAUNCHXL_UART_RX
+#define PIN_UART_TXD    CC2640R2_LAUNCHXL_UART_TX
 
 void my_UART_init(void)
 {
@@ -193,10 +194,10 @@ void my_UART_init(void)
            != PRCM_DOMAIN_POWER_ON);
 
 
-//    /* GPIO power */
-//    PRCMPeripheralRunEnable(PRCM_PERIPH_GPIO);
-//    PRCMLoadSet();
-//    while (!PRCMLoadGet());
+    /* GPIO power */
+    PRCMPeripheralRunEnable(PRCM_PERIPH_GPIO);
+    PRCMLoadSet();
+    while (!PRCMLoadGet());
 
     /* UART power */
     PRCMPeripheralRunEnable(PRCM_PERIPH_UART0);

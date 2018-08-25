@@ -34,7 +34,7 @@
 #include "debug.h"
 #include "flash.h"
 #include "core.h"
-#include "uart.h"
+//#include "protocol.h"
 #include "communicate.h"
 #include "bsp.h"
 #include "bsp_spi.h"
@@ -117,6 +117,7 @@ void *mainThread(void *arg0)
 {
     Board_initSPI();
     Board_initUART();
+    Board_initGPIO();
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
     debug_peripheral_init();
@@ -139,8 +140,8 @@ void *mainThread(void *arg0)
         perr("flash init fail.\r\n");
     }
 
-    UART_appInit();
-
+    protocol_peripheralInit();
+    pinfo("peripheral init complete\r\n");
     Core_Init();
     pinfo("core init complete.\r\n");
     pinfo("enter main loop.\r\n");

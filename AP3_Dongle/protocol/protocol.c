@@ -10,10 +10,20 @@
 #include "sys_cfg.h"
 #include "protocol.h"
 #include "crc16.h"
+#include "uart.h"
+#include "appSPI.h"
+#include "bsp_uart.h"
 
-
-#pragma location = (TRANS_BUF_ADDR)
-uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+#if defined(PCIE)
+    #pragma location = (TRANS_BUF_ADDR)
+    uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+#elif defined(AP_3)
+    #pragma location = (TRANS_BUF_ADDR)
+    uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+    #pragma location = (TRANS_BUF_ADDR+TRANS_BUF_SIZE)
+    uint8_t spi_send_buf[TRANS_BUF_SIZE] = {0x55};          //the buffer used for UART sending data
+#else
+#endif
 
 extern st_protocolFnxTable xmodemFnx;
 extern st_protocolFnxTable SPIPrivateFnx;
@@ -29,12 +39,23 @@ st_protocolConfig protocolConfig[PROTOCOL_NUM] = {
 
 };
 
+void protocol_peripheralInit(void)
+{
+#if defined(PCIE)
+    UART_appInit();
+#elif defined(AP_3)
+    SPI_appInit(recv_once_buf, spi_send_buf);
+
+#else
+
+#endif
+}
+
 void protocol_dataInit(uint8_t* tmp_buf, uint16_t tmp_len)
 {
     protocolConfig[PROTOCOL_TYPE].protocolFnxPtr->dataInitFnx(tmp_buf, tmp_len);
 }
 
-void Xmodem_reset(sn_t *x);
 
 
 uint8_t *protocol_getData(UINT32 *len)
@@ -73,7 +94,7 @@ uint8_t protocol_checkCrc(void *buf, em_protocol type)
             crc_buf  = ((st_SPI_private*)buf)->crc;
             crc_calc = CRC16_CaculateStepByStep(crc_calc, buf, offsetof(st_SPI_private, buf));
             tmp = ((st_SPI_private*)buf)->buf;
-            len = ((st_SPI_private*)buf)->len;
+            len = ((st_SPI_private*)buf)->head.len;
             break;
         case PROTOCOL_XMODEM:
             break;

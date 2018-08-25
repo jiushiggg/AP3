@@ -5,8 +5,8 @@
 //#define GOLD_BOARD
 //#define DEBUG_CTRL_OF_OSD
 
-//#define   AP_3            //Linux <---UART---> Dongle
-#define PCIE             //Linux <---SPI----> Dongle
+#define   AP_3            //Linux <---UART---> Dongle
+//#define PCIE             //Linux <---SPI----> Dongle
 
 
 #if defined(PCIE)

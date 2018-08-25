@@ -4,20 +4,25 @@
  *  Created on: 2018Äê8ÔÂ13ÈÕ
  *      Author: ggg
  */
+#include <ti/drivers/GPIO.h>
+//#include <ti/drivers/spi/SPICC26XXDMA.h>
+
 #include "Board.h"
+#include "sys_cfg.h"
 #include "appSPI.h"
+#include "SPI_private.h"
 
 
 #define SPI_RATE    4000000
-#define SPI_BUF_LEN 512
+#define SPI_BUF_LEN SPIPRIVATE_LEN_ALL
 
 extern void transferCallback(SPI_Handle handle, SPI_Transaction *transaction);
+SPI_Transaction transaction;
+SPI_Handle handle;
 
 void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
 {
-    SPI_Handle handle;
     SPI_Params params;
-    SPI_Transaction transaction;
 
     // Init SPI and specify non-default parameters
     SPI_Params_init(&params);
@@ -34,16 +39,23 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
     handle = SPI_open(Board_SPI1, &params);
 //    SPI_control(handle, SPICC26XXDMA_RETURN_PARTIAL_ENABLE, NULL);
     SPI_transfer(handle, &transaction);
-
 }
 
-void SPI_appSend()
+uint16_t SPI_appSend(void *buffer, uint16_t size)
 {
-
+    memcpy(transaction.txBuf, buffer, size);
+    GPIO_write(Board_SPI_SLAVE_READY, 1);
+    return size;
 }
 
-void SPI_appRecv()
+uint16_t SPI_appRecv(void *buffer, uint16_t size)
 {
-
+    memcpy(buffer, transaction.rxBuf, size);
+    return size;
 }
 
+void SPI_bufferInit(uint8_t* rxbuf, uint8_t* txbuf)
+{
+    transaction.txBuf = txbuf;
+    transaction.rxBuf = rxbuf;
+}

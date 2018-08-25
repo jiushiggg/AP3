@@ -55,7 +55,7 @@ typedef struct st_protocolConfig{
 #if defined(PCIE)
     #define TRANS_BUF_SIZE  XMODEM_LEN_ALL
 #elif defined(AP_3)
-    #define TRANS_BUF_SIZE  SPI_PRIV_LEN_ALL
+    #define TRANS_BUF_SIZE  SPIPRIVATE_LEN_ALL
 #else
 #endif
 extern uint8_t recv_once_buf[TRANS_BUF_SIZE];
@@ -68,6 +68,7 @@ extern int32_t protocol_recvToFlash(sn_t *x, uint32_t addr, int32_t len, int32_t
 extern int32_t protocol_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
 extern int32_t protocol_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
 extern uint8_t protocol_checkCrc(void *buf, em_protocol type);
+extern void protocol_peripheralInit(void);
 
 
 #endif /* PROTOCOL_PROTOCOL_H_ */

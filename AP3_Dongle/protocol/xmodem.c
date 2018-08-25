@@ -414,7 +414,7 @@ INT32 Xmodem_Recv(UINT8* tmp_buf, UINT16 tmp_len)
 		xcb_recv_len += copy_len;
 	}
 #else
-    if(rec_date_len > 0)
+    if(rec_date_len>0 && rec_date_len<=tmp_len)
     {
         memcpy(tmp_buf, pRecv, rec_date_len);
         xcb_ptr = tmp_buf;
