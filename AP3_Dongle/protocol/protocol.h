@@ -59,6 +59,7 @@ typedef struct st_protocolConfig{
 #else
 #endif
 extern uint8_t recv_once_buf[TRANS_BUF_SIZE];
+extern uint8_t spi_send_buf[TRANS_BUF_SIZE];
 
 
 extern void protocol_dataInit(uint8_t* tmp_buf, uint16_t tmp_len);

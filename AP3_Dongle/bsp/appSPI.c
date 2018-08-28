@@ -43,14 +43,19 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
 
 uint16_t SPI_appSend(void *buffer, uint16_t size)
 {
-    memcpy(transaction.txBuf, buffer, size);
     GPIO_write(Board_SPI_SLAVE_READY, 1);
+//    transaction.txBuf = buffer;
+    transaction.count = size;
+    SPI_transfer(handle, &transaction);
+    GPIO_write(Board_SPI_SLAVE_READY, 0);
     return size;
 }
 
 uint16_t SPI_appRecv(void *buffer, uint16_t size)
 {
-    memcpy(buffer, transaction.rxBuf, size);
+//    transaction.rxBuf = buffer;
+    transaction.count = size;
+    SPI_transfer(handle, &transaction);
     return size;
 }
 

@@ -180,7 +180,9 @@ void *mainThread(void *arg0)
         p.p = 0;
         p.c = 168;
         p.actor = EM_START;
-        rft_tx_null(&p);
+        memcpy((uint8_t*)&local_task.cmd_buf.unmod_carrier, (uint8_t*)&p, sizeof(st_unmodulated_carrier));
+        rft_tx_null(&local_task);
+        while(1);
 #else
         RSSI_test();
 #endif
