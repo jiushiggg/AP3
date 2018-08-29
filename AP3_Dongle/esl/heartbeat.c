@@ -380,7 +380,6 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 		}
 		len = (len == table->recv_len ? table->recv_len : 16);
 		ret = _check_hb_data(ptr, len);
-		GPIO_toggleDio(DEBUG_TEST);
 		if(ret == NORMAL_DATA)
 		{
 			table->num += 1;

@@ -265,7 +265,7 @@ void pinfo(const char *format, ...)
 #else
 void pdebughex(UINT8 *src, UINT16 len){
     uint16_t i=0;
-    //if(s_debug_level >= DEBUG_LEVEL_DEBUG)
+    if(s_debug_level >= DEBUG_LEVEL_DEBUG)
     {
         for(i = 0; i < len; i++)
         {
