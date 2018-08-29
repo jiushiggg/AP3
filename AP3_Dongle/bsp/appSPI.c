@@ -59,6 +59,14 @@ uint16_t SPI_appRecv(void *buffer, uint16_t size)
     return size;
 }
 
+void SPI_cancle(void)
+{
+
+    SPI_transferCancel(handle);
+
+}
+
+
 void SPI_bufferInit(uint8_t* rxbuf, uint8_t* txbuf)
 {
     transaction.txBuf = txbuf;

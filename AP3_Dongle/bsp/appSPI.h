@@ -14,6 +14,7 @@ extern void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf);
 extern uint16_t SPI_appRecv(void *buffer, uint16_t size);
 extern uint16_t SPI_appSend(void *buffer, uint16_t size);
 extern void SPI_bufferInit(uint8_t* rxbuf, uint8_t* txbuf);
+extern void SPI_cancle(void);
 
 extern SPI_Handle handle;
 extern SPI_Transaction transaction;

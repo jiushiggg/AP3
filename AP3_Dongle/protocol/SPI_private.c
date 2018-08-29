@@ -95,12 +95,11 @@ static void SPIPrivate_end(uint8_t* buf_ptr, st_SPI_private * tmp)
 //    tmp->crc = CRC16_CaculateStepByStep(0, (uint8_t*)&tmp , sizeof(st_SPI_privateHead));
 //    memcpy(buf_ptr, (uint8_t*)&tmp, sizeof(st_SPI_privateHead));
 //    memcpy(buf_ptr+sizeof(st_SPI_privateHead), (uint8_t*)&tmp->crc, sizeof(tmp->crc));
-    transaction.txBuf = NULL;
     memset((uint8_t*)&spi_sn, 0, sizeof(spi_sn));
     GPIO_write(Board_SPI_SLAVE_READY, 1);
 
 //    pdebughex(tx_ptr, tmp_len+sizeof(calu_crc)+sizeof(st_SPI_privateHead));
-//    SPI_appRecv(SPI_NO_USE, 517);
+    SPI_appRecv(SPI_NO_USE, 517);
     SPIP_DEBUG(("endExit\r\n"));
 }
 
@@ -116,17 +115,19 @@ int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout)
     volatile uint8_t exit_flg = false;
     int32_t ret_len = 0;
 
-    SPIP_DEBUG(("---SPIPrivate_send---\r\n"));
+    SPIP_DEBUG(("-------------SPIPrivate_send---\r\n"));
     pdebughex(src, len);
     while(false == exit_flg){
         switch (privateState){
             case ST_SPI_INIT:
-                privateState = ST_SPI_PACKET_SEND_DATA;
+                SPI_cancle();
+
                 memset((uint8_t*)&send_check, 0, sizeof(send_check));
                 x->last_recv_cmd = SPI_NONE_CMD;
-                transaction.txBuf = spi_send_buf;
-                tx_ptr = transaction.txBuf;
-                rx_ptr = transaction.rxBuf;
+                transaction.count = 517;
+                tx_ptr = transaction.txBuf = spi_send_buf;
+                rx_ptr = transaction.rxBuf = recv_once_buf;
+                privateState = ST_SPI_PACKET_SEND_DATA;
                 SPIP_DEBUG(("initExit\r\n"));
                 break;
             case ST_SPI_PACKET_SEND_DATA:
@@ -173,9 +174,7 @@ int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout)
 
                 SPI_transfer(handle, &transaction);
                 GPIO_write(Board_SPI_SLAVE_READY, 0);
-                //Device_Recv_post();
                 if (true==Device_Recv_pend(EVENT_WAIT_US(1000000))){
-                //if (1){
                     spi_sn.send_retry_times = 0;
                     SPI_recCmdAckFlg = false;
                     privateState = ST_SPI_RECV_DATA;
@@ -279,7 +278,7 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
     volatile uint8_t exit_flg = false;
     int32_t ret_len = 0;
 
-    SPIP_DEBUG(("---SPIPrivate_recv---\r\n"));
+    SPIP_DEBUG(("-------------SPIPrivate_recv---\r\n"));
     while(false == exit_flg){
 
         switch (privateState){
