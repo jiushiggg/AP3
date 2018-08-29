@@ -5,7 +5,7 @@
  *      Author: ggg
  *      private protocol
  *      SN(1Byte) | LEN(2Byte) | Data(0-512) | CRC(2Byte)
- *      SN：子板成功接收数据后，SN号加1。返回给母板，母板用SN号组下一包数据。
+ *      SN：接收的数据包号。
  *      LEN:length。最后一包数据由bit12位置1（0x1000）表示。
  *      Data:data
  *      CRC: sn+len+data的CRC。
@@ -62,6 +62,7 @@ typedef enum{
     ST_SPI_SEND_LAST_DATA,
     ST_SPI_PACKET_CHECK_DATA,
     ST_SPI_RECV_DATA,
+    ST_SPI_RECV_NEXT_DATA,
     ST_SPI_RECV_LAST_DATA,
     ST_SPI_ERR,
     ST_SPI_END,
@@ -287,10 +288,21 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
                 privateState = ST_SPI_RECV_DATA;
                 SPIP_DEBUG(("InitExit%d\r\n", exit_flg));
                 break;
+//            case ST_SPI_RECV_NEXT_DATA:
+//                SPIP_DEBUG(("->ST_SPI_RECV_DATA\r\n"));
+//                SPI_recCmdAckFlg = true;
+//                if (true==Device_Recv_pend(EVENT_WAIT_US(1000000))){
+//                    spi_sn.send_retry_times = 0;
+//                    SPI_recCmdAckFlg = false;
+//                    privateState = ST_SPI_RECV_DATA;
+//                }else{
+//                    SPI_recCmdAckFlg = false;
+//                }
+//                SPIP_DEBUG(("recvNextDataExit\r\n"));
+                //no break;
             case ST_SPI_RECV_DATA:
             {
                 int32_t tmp_len = 0;
-
                 SPIP_DEBUG(("->ST_SPI_RECV_DATA\r\n"));
                 GPIO_write(Board_SPI_SLAVE_READY, 1);
                 memcpy((uint8_t*)&tmp, rx_ptr, sizeof(st_SPI_privateHead));
@@ -300,46 +312,45 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
                 calu_crc = CRC16_CaculateStepByStep(0, rx_ptr, sizeof(st_SPI_privateHead)+tmp_len);
                 pdebughex(rx_ptr, tmp_len+sizeof(calu_crc)+sizeof(st_SPI_privateHead));
                 SPIP_DEBUG(("calu=%x, buf=%x", calu_crc, tmp.crc));
-
+                SPIP_DEBUG(("spi_sn=%x, tmp_sn=%x", spi_sn.send_sn, tmp.head.sn));
                 if (tmp.crc == calu_crc && spi_sn.send_sn==tmp.head.sn){
                     spi_sn.nak_times = 0;
                     if (ret_len+tmp_len > len){
                         privateState = ST_SPI_ERR;
-                        break;
-                    }
-                    if(tmp.head.len == SPI_QUERY){
+                        SPIP_DEBUG(("lenErr"));
+                    } else if(tmp.head.len == SPI_QUERY){
                         spi_sn.send_sn = tmp.head.sn+1;
-                        privateState = spi_sn.last_recv_cmd==true ? ST_SPI_END : privateState;
+                        privateState = spi_sn.last_recv_cmd==true ? ST_SPI_END : ST_SPI_SEND_DATA;
                         SPIP_DEBUG(("query"));
-                        SPIP_DEBUG(("recvDataExit\r\n"));
-                        break;
-                    }else{
+                    }else{                                      //right packet
                         memcpy(read_buf, tmp.buf, tmp_len);
                         spi_sn.last_recv_cmd = tmp.head.len&SPI_LAST_PCK ? true : false;
-                        SPIP_DEBUG(("recvData"));
                         ret_len += tmp_len;
-                    }
-                    tmp.head.len = SPI_LAST_PCK;
+                        tmp.head.len = SPI_LAST_PCK;
+                        SPIP_DEBUG(("recvData:%d", spi_sn.last_recv_cmd));
+                    }                    
                 }else{
-                    if (++spi_sn.nak_times > 3){
-                        spi_sn.nak_times = 0;
-                        privateState = ST_SPI_ERR;
-                        break;
-                    }
-
                     tmp.head.len = SPI_LAST_PCK;
                     if (tmp.crc != calu_crc){
                         tmp.head.len |= SPI_CRC_ERR;
                     }
+
+                    if (++spi_sn.nak_times > 3){
+                        spi_sn.nak_times = 0;
+                        privateState = ST_SPI_ERR;
+                    }
                     SPIP_DEBUG(("recvErr"));
                     pdebughex(tx_ptr, sizeof(st_SPI_privateHead)+sizeof(calu_crc));
                 }
-                tx_ptr[0] = tmp.head.sn;
-                memcpy(tx_ptr, (uint8_t*)&tmp, sizeof(st_SPI_privateHead));
-                calu_crc = CRC16_CaculateStepByStep(0, tx_ptr, sizeof(st_SPI_privateHead)+(tmp.head.len&SPI_LEN_MASK));
-                memcpy(tx_ptr + sizeof(st_SPI_privateHead), (uint8_t*)&calu_crc, sizeof(calu_crc));
 
-                privateState = ST_SPI_SEND_DATA;
+                if (ST_SPI_END!=privateState && ST_SPI_ERR!=privateState){
+                    tx_ptr[0] = tmp.head.sn;
+                    memcpy(tx_ptr, (uint8_t*)&tmp, sizeof(st_SPI_privateHead));
+                    calu_crc = CRC16_CaculateStepByStep(0, tx_ptr, sizeof(st_SPI_privateHead)+(tmp.head.len&SPI_LEN_MASK));
+                    memcpy(tx_ptr + sizeof(st_SPI_privateHead), (uint8_t*)&calu_crc, sizeof(calu_crc));
+                    privateState = ST_SPI_SEND_DATA;
+                }
+
                 SPIP_DEBUG(("recvDataExit\r\n"));
                 break;
             }
