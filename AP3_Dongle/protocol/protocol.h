@@ -19,6 +19,7 @@ typedef enum {
     PROTOCOL_NUM    = (uint8_t)2
 }em_protocol;
 
+#pragma pack(1)
 typedef struct sn_t{
     uint8_t last_recv_cmd;
     uint8_t last_recv_sn;
@@ -51,6 +52,7 @@ typedef struct st_protocolConfig{
     uint16_t bufLen;
 }st_protocolConfig;
 
+#pragma pack()
 
 #if defined(PCIE)
     #define TRANS_BUF_SIZE  XMODEM_LEN_ALL
