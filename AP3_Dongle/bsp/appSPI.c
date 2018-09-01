@@ -53,6 +53,7 @@ uint16_t SPI_appSend(void *buffer, uint16_t size)
 
 uint16_t SPI_appRecv(void *buffer, uint16_t size)
 {
+    GPIO_write(Board_SPI_SLAVE_READY, 1);
 //    transaction.rxBuf = buffer;
     transaction.count = size;
     SPI_transfer(handle, &transaction);
