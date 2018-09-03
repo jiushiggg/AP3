@@ -103,7 +103,7 @@ static void packetData(uint8_t* dst, uint32_t src, st_SPI_private* pckst, emCrcF
 
     memcpy(dst+sizeof(st_SPI_privateHead)+tmp_len, (uint8_t*)&pckst->crc, sizeof(pckst->crc));
 
-    Debug_SetLevel(DEBUG_LEVEL_DEBUG);
+    //Debug_SetLevel(DEBUG_LEVEL_DEBUG);
     pdebughex(dst, sizeof(st_SPI_privateHead)+tmp_len+sizeof(pckst->crc));
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
@@ -120,7 +120,7 @@ static uint16_t unpackData(uint32_t src, st_SPI_private* pckst)
 
     SPIP_DEBUG(("sn:%d, len:%x,crc:%x\r\n", pckst->head.sn, pckst->head.len, pckst->crc));
 
-    Debug_SetLevel(DEBUG_LEVEL_DEBUG);
+    //Debug_SetLevel(DEBUG_LEVEL_DEBUG);
     pdebughex((uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len+sizeof(pckst->crc));
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
