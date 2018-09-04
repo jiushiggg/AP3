@@ -179,6 +179,7 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
 			if(pESL[i].failed_pkg_num == pESL[i].total_pkg_num)
 			{
 				taddr = pESL[i].first_pkg_addr + j*SIZE_ESL_DATA_SINGLE;
+//				pdebug("pESL[i].first_pkg_addr%x\r\n", pESL[i].first_pkg_addr);
 				pdebug("send 0x%02X-0x%02X-0x%02X-0x%02X pkg %d, ch=%d, len=%d\r\n", id[0], id[1], id[2], id[3], j, ch, len);
 			}
 //			else if((pESL[i].failed_pkg_num>=MAX_FAILED_PKG_NUM) && (pESL[i].failed_pkg_num<pESL[i].total_pkg_num)) // >= 10 && < total_pkg_num

@@ -343,7 +343,12 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                         if (NULL == fnx){
                             memcpy((uint8_t*)addr, tmp.buf, tmp_len);
                         }else {
-                            if(Flash_Write(addr, tmp.buf, tmp_len) == FALSE)
+//                            GGGDEBUG(("recv addr:%x,tmp_len:%d\r\n", addr, tmp_len));
+//                            Debug_SetLevel(DEBUG_LEVEL_DEBUG);
+//                            pdebughex(tmp.buf, tmp_len);
+//                            Debug_SetLevel(DEBUG_LEVEL_INFO);
+
+                            if(fnx(addr, tmp.buf, tmp_len) == FALSE)
                             {
                                 privateState = ST_SPI_ERR;
                                 SPIP_DEBUG(("flash write error"));
@@ -433,7 +438,7 @@ int32_t SPIPrivate_recvToFlash(sn_t *x, uint32_t addr, int32_t dst_len, int32_t 
 {
     int32_t ret_len = 0;
     SPIP_DEBUG(("---SPIPrivate_recvToFlash---\r\n"));
-    ret_len = SPI_recv(x, addr, dst_len, EVENT_WAIT_US(1000000), Flash_Read);
+    ret_len = SPI_recv(x, addr, dst_len, EVENT_WAIT_US(1000000), Flash_Write);
     SPIP_DEBUG(("---SPIPrivate_recvToFlash exit---%d\r\n", ret_len));
     return ret_len;
 }
