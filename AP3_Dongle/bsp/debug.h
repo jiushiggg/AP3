@@ -5,8 +5,8 @@
 //#define GGGDEBUG(x)  printf x
 //#define X_DEBUG(x) log_print x
 #define X_DEBUG(x)    ((void)0)
-#define SPIP_DEBUG(x)    ((void)0)
-//#define SPIP_DEBUG(x)    log_print x
+//#define SPIP_DEBUG(x)    ((void)0)
+#define SPIP_DEBUG(x)    log_print x
 #define GGGDEBUG(x)    ((void)0)
 #define DEBUG_LEVEL_HST			0
 #define	DEBUG_LEVEL_ERROR		1	

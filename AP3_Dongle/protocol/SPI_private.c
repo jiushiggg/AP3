@@ -275,7 +275,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 SPIP_DEBUG(("--->ST_SPI_PACKET_CHECK_DATA\r\n"));
                 x->last_recv_cmd = SPI_QUERY_CMD;
 
-                send_check.head.sn = 0;
+                send_check.head.sn = x->send_sn;
                 send_check.head.len = SPI_QUERY;
                 packetData(tx_ptr, 0, &send_check, CALCU_CRC);
                 memset((uint8_t*)&send_check, 0, sizeof(send_check));
@@ -330,7 +330,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 pdebughex(rx_ptr, tmp_len+sizeof(calu_crc)+sizeof(st_SPI_privateHead));
                 SPIP_DEBUG(("spi_sn=%x, calu=%x\r\n", x->send_sn, calu_crc));
 
-                if (tmp.crc == calu_crc && (x->send_sn==tmp.head.sn|| SPI_QUERY_SN==tmp.head.sn)){
+                if (tmp.crc == calu_crc && x->send_sn==tmp.head.sn){
                     x->nak_times = 0;
                     if (ret_len+tmp_len > len){
                         privateState = ST_SPI_ERR;
