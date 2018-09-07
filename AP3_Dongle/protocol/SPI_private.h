@@ -28,7 +28,7 @@ typedef struct st_SPI_private{
 
 #define SPIPRIVATE_LEN_SN           1
 #define SPIPRIVATE_LEN_LEN          2
-#define SPIPRIVATE_LEN_DAT          1018
+#define SPIPRIVATE_LEN_DAT          512
 #define SPIPRIVATE_LEN_CRC          2
 #define SPIPRIVATE_LEN_ALL          (SPIPRIVATE_LEN_SN+SPIPRIVATE_LEN_LEN+SPIPRIVATE_LEN_DAT+SPIPRIVATE_LEN_CRC)
 
