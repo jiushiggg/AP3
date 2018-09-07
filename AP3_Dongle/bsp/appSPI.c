@@ -36,6 +36,7 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
     transaction.txBuf = txbuf;
     transaction.rxBuf = rxbuf;
     // Open the SPI and initiate the first transfer
+    pinfo("spi init len:%d", transaction.count);
     handle = SPI_open(Board_SPI1, &params);
 //    SPI_control(handle, SPICC26XXDMA_RETURN_PARTIAL_ENABLE, NULL);
     SPI_transfer(handle, &transaction);

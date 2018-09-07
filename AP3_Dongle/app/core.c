@@ -203,7 +203,7 @@ void readHandleFnx(void)
     local_task.data_ptr = local_task.cmd_buf.buf;
     local_task.data_len = protocol_recv(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
     if(local_task.data_len > CORE_CMD_LEN){
-        perr("Xmodem_RecvCallBack recv too big data(%d) to handle.\r\n", local_task.data_len);
+        pinfo("Xmodem_RecvCallBack recv too big data(%d) to handle.\r\n", local_task.data_len);
         protocol_dataInit(local_task.data_ptr, sizeof(local_task.cmd_buf.buf));
     }else if((local_task.data_len > 0)&&(local_task.data_len <=TRANS_BUF_SIZE)){
         EP_DEBUG(("\r\n>>>EP1_OUT_Callback recv data len = %d.\r\n", local_task.data_len));
@@ -516,6 +516,7 @@ void Core_Mainloop(void)
 
         if(event & EVENT_RF_TXRX)
         {
+            pinfo("Core rf test\r\n");
             local_task.ack_len = rf_txrx(local_task.cmd_buf.buf, local_task.cmd_len, local_task.ack_buf.buf, CORE_CMD_LEN);
             Core_SendData(local_task.ack_buf.buf, local_task.ack_len);
             Event_Clear(EVENT_RF_TXRX);

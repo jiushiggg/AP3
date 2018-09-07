@@ -131,7 +131,7 @@ static emPrivateState packageSend(uint8_t* buf, uint16_t len, sn_t *x, uint32_t 
 {
     emPrivateState tmp_state = ST_SPI_ERR;
     SPI_recCmdAckFlg = true;
-    SPI_appSend(SPI_NO_USE, 517);
+    SPI_appSend(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
     pdebughex(buf, len);
 
     if (true==Device_Recv_pend(timeout)){
@@ -165,7 +165,7 @@ static void SPIPrivate_end(uint8_t* buf_ptr, st_SPI_private * tmp)
     packetData(buf_ptr, 0, tmp, CALCU_CRC);
     memset((uint8_t*)&spi_sn, 0, sizeof(spi_sn));
 
-    SPI_appRecv(SPI_NO_USE, 517);
+    SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
 }
 
 static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOOL (*fnx)(uint32_t addr1, uint8_t* dst, uint32_t len1))
@@ -189,7 +189,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 memset((uint8_t*)&send_check, 0, sizeof(send_check));
                 GPIO_write(Board_SPI_SLAVE_READY, 1);
                 x->last_recv_cmd = SPI_NONE_CMD;
-                transaction.count = 517;
+                transaction.count = SPIPRIVATE_LEN_ALL;
                 tx_ptr = transaction.txBuf = spi_send_buf;
                 rx_ptr = transaction.rxBuf = recv_once_buf;
                 privateState = ST_SPI_PACKET_TRANS_DATA;
@@ -468,9 +468,11 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
     }else{
         memset(trans->rxBuf, 0, trans->count);
         SPIP_DEBUG(("5555cnt%d,f:%d,a:%d\r\n", trans->count, SPI_writeFlashFlg,SPI_recCmdAckFlg));
+        if (privateState!=ST_SPI_INIT){
+            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+        }
     }
     spi_recv_len_once = trans->count;
-//    SPI_transfer(handle, trans);
 }
 
 

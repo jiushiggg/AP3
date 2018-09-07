@@ -266,8 +266,9 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
 		i++;
 		if(i == table->esl_num)
 		{
-			//if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
-			if((dummy_us=((uint16_t)3*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
+		    //pinfo("%d.",table->tx_interval);       //debug
+			if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
+			//if((dummy_us=((uint16_t)3*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
 			{
 			    dummy_chaining_mode(table, dummy_us);
 				f = 1;

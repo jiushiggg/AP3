@@ -63,9 +63,9 @@
 
 #define TRANS_BUF_ADDR          (CORE_TASK_ADDR+CORE_TASK_SIZE)
 
-#define CORE_CMD_LEN            TRANS_BUF_SIZE
-
-
+#define CORE_ACK_BUF_LEN 100
+#define CORE_CMD_BUF_LEN 100
+#define CORE_CMD_LEN            CORE_CMD_BUF_LEN
 
 #pragma pack(1)
 typedef enum{
@@ -127,14 +127,15 @@ typedef struct st_unmodulated_carrier_ack{
 }st_unmodulated_carrier_ack;
 
 typedef union  un_cmd_buf{
-    UINT8                   buf[CORE_CMD_LEN];
+    UINT8                   buf[CORE_CMD_BUF_LEN];
     st_calibration_freq     calib_freq;
     st_calibration_power    calib_power;
     st_unmodulated_carrier  unmod_carrier;
 }un_cmd_buf;
 
+
 typedef union un_ack_buf{
-    UINT8                   buf[CORE_CMD_LEN];
+    UINT8                   buf[CORE_ACK_BUF_LEN];
     st_calibration_freq_ack     freq;
     st_calibration_power_ack    power;
     st_unmodulated_carrier_ack  unmod_carrier;
