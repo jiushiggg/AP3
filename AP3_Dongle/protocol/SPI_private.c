@@ -453,7 +453,7 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 {
     uint8_t *ptr=trans->rxBuf;
 
-    if ((ptr[2] | (uint16_t)ptr[3]<<8)==CORE_CMD_BACK_TO_IDLE && SPIPRIVATE_LEN_ALL==trans->count){
+    if ((ptr[sizeof(st_SPI_privateHead)] | (uint16_t)ptr[sizeof(st_SPI_privateHead)+1]<<8)==CORE_CMD_BACK_TO_IDLE && SPIPRIVATE_LEN_ALL==trans->count){
         core_idel_flag = 1;
         SPIP_DEBUG(("1111\r\n"));
     }else if (SPI_recCmdAckFlg == true && SPIPRIVATE_LEN_ALL==trans->count){
