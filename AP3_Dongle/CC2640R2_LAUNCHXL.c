@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, Texas Instruments Incorporated
+ * Copyright (c) 2016-2018, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -279,12 +279,11 @@ const DisplayUart_HWAttrs displayUartHWAttrs = {
     .strBufLen    = BOARD_DISPLAY_UART_STRBUF_SIZE,
 };
 
-const DisplaySharp_HWAttrs displaySharpHWattrs = {
+const DisplaySharp_HWAttrsV1 displaySharpHWattrs = {
     .spiIndex    = CC2640R2_LAUNCHXL_SPI0,
-    .csPin       = CC2640R2_LAUNCHXL_LCD_CS,
-    .extcominPin = CC2640R2_LAUNCHXL_LCD_EXTCOMIN,
-    .powerPin    = CC2640R2_LAUNCHXL_LCD_POWER,
-    .enablePin   = CC2640R2_LAUNCHXL_LCD_ENABLE,
+    .csPin       = CC2640R2_LAUNCHXL_GPIO_LCD_CS,
+    .powerPin    = CC2640R2_LAUNCHXL_GPIO_LCD_POWER,
+    .enablePin   = CC2640R2_LAUNCHXL_GPIO_LCD_ENABLE,
     .pixelWidth  = BOARD_DISPLAY_SHARP_SIZE,
     .pixelHeight = BOARD_DISPLAY_SHARP_SIZE,
     .displayBuf  = sharpDisplayBuf,
@@ -410,7 +409,7 @@ const GPTimerCC26XX_Config GPTimerCC26XX_config[CC2640R2_LAUNCHXL_GPTIMERPARTSCO
     { &gptimerCC26XXObjects[CC2640R2_LAUNCHXL_GPTIMER3], &gptimerCC26xxHWAttrs[CC2640R2_LAUNCHXL_GPTIMER3A], GPT_A },
     { &gptimerCC26XXObjects[CC2640R2_LAUNCHXL_GPTIMER3], &gptimerCC26xxHWAttrs[CC2640R2_LAUNCHXL_GPTIMER3B], GPT_B },
 };
-
+#endif
 /*
  *  =============================== I2C ===============================
 */
@@ -441,7 +440,7 @@ const I2C_Config I2C_config[CC2640R2_LAUNCHXL_I2CCOUNT] = {
 };
 
 const uint_least8_t I2C_count = CC2640R2_LAUNCHXL_I2CCOUNT;
-#endif
+
 #endif
 /*
  *  =============================== NVS ===============================
@@ -450,10 +449,11 @@ const uint_least8_t I2C_count = CC2640R2_LAUNCHXL_I2CCOUNT;
 #include <ti/drivers/nvs/NVSSPI25X.h>
 #include <ti/drivers/nvs/NVSCC26XX.h>
 
-#define SECTORSIZE 0x1000
-//#define NVS_REGIONS_BASE 0x1B000
+#define NVS_REGIONS_BASE 0x1A000
+#define SECTORSIZE       0x1000
+#define REGIONSIZE       (SECTORSIZE * 4)
 
-static uint8_t verifyBuf[64];
+#ifndef Board_EXCLUDE_NVS_INTERNAL_FLASH
 
 /*
  * Reserve flash sectors for NVS driver use by placing an uninitialized byte
@@ -464,49 +464,66 @@ static uint8_t verifyBuf[64];
 /*
  * Place uninitialized array at NVS_REGIONS_BASE
  */
-//#pragma LOCATION(flashBuf, NVS_REGIONS_BASE);
-//#pragma NOINIT(flashBuf);
-//static char flashBuf[SECTORSIZE * 4];
+#pragma LOCATION(flashBuf, NVS_REGIONS_BASE);
+#pragma NOINIT(flashBuf);
+static char flashBuf[REGIONSIZE];
 
 #elif defined(__IAR_SYSTEMS_ICC__)
 
 /*
  * Place uninitialized array at NVS_REGIONS_BASE
  */
-__no_init static char flashBuf[SECTORSIZE * 4] @ NVS_REGIONS_BASE;
+static __no_init char flashBuf[REGIONSIZE] @ NVS_REGIONS_BASE;
 
 #elif defined(__GNUC__)
 
 /*
- * Place the reserved flash buffers in the .nvs section.
- * The nvs section will be placed at address NVS_REGIONS_BASE by
- * the gcc linker cmd file.
+ * Place the flash buffers in the .nvs section created in the gcc linker file.
+ * The .nvs section enforces alignment on a sector boundary but may
+ * be placed anywhere in flash memory.  If desired the .nvs section can be set
+ * to a fixed address by changing the following in the gcc linker file:
+ *
+ * .nvs (FIXED_FLASH_ADDR) (NOLOAD) : AT (FIXED_FLASH_ADDR) {
+ *      *(.nvs)
+ * } > REGION_TEXT
  */
 __attribute__ ((section (".nvs")))
-static char flashBuf[SECTORSIZE * 4];
+static char flashBuf[REGIONSIZE];
 
 #endif
 
-/* Allocate objects for NVS and NVS SPI */
-//NVSCC26XX_Object nvsCC26xxObjects[1];
+/* Allocate objects for NVS Internal Regions */
+NVSCC26XX_Object nvsCC26xxObjects[1];
+
+/* Hardware attributes for NVS Internal Regions */
+const NVSCC26XX_HWAttrs nvsCC26xxHWAttrs[1] = {
+    {
+        .regionBase = (void *)flashBuf,
+        .regionSize = REGIONSIZE,
+    },
+};
+
+#endif /* Board_EXCLUDE_NVS_INTERNAL_FLASH */
+
+#ifndef Board_EXCLUDE_NVS_EXTERNAL_FLASH
+
+#define SPISECTORSIZE    0x1000
+#define SPIREGIONSIZE    (SPISECTORSIZE * 511)
+#define VERIFYBUFSIZE    64
+
+static uint8_t verifyBuf[VERIFYBUFSIZE];
+
+/* Allocate objects for NVS External Regions */
 NVSSPI25X_Object nvsSPI25XObjects[1];
 
-/* Hardware attributes for NVS */
-//const NVSCC26XX_HWAttrs nvsCC26xxHWAttrs[1] = {
-//    {
-//        .regionBase = (void *)flashBuf,
-//        .regionSize = SECTORSIZE * 4,
-//    },
-//};
-
-/* Hardware attributes for NVS SPI */
+/* Hardware attributes for NVS External Regions */
 const NVSSPI25X_HWAttrs nvsSPI25XHWAttrs[1] = {
     {
         .regionBaseOffset = 0,
-        .regionSize = SECTORSIZE * 511,
-        .sectorSize = SECTORSIZE,
+        .regionSize = SPIREGIONSIZE,
+        .sectorSize = SPISECTORSIZE,
         .verifyBuf = verifyBuf,
-        .verifyBufSize = 64,
+        .verifyBufSize = VERIFYBUFSIZE,
         .spiHandle = NULL,
         .spiIndex = 0,
         .spiBitRate = 12000000,
@@ -514,18 +531,24 @@ const NVSSPI25X_HWAttrs nvsSPI25XHWAttrs[1] = {
     },
 };
 
+#endif /* Board_EXCLUDE_NVS_EXTERNAL_FLASH */
+
 /* NVS Region index 0 and 1 refer to NVS and NVS SPI respectively */
 const NVS_Config NVS_config[CC2640R2_LAUNCHXL_NVSCOUNT] = {
-//    {
-//        .fxnTablePtr = &NVSCC26XX_fxnTable,
-//        .object = &nvsCC26xxObjects[0],
-//        .hwAttrs = &nvsCC26xxHWAttrs[0],
-//    },
+#ifndef Board_EXCLUDE_NVS_INTERNAL_FLASH
+    {
+        .fxnTablePtr = &NVSCC26XX_fxnTable,
+        .object = &nvsCC26xxObjects[0],
+        .hwAttrs = &nvsCC26xxHWAttrs[0],
+    },
+#endif
+#ifndef Board_EXCLUDE_NVS_EXTERNAL_FLASH
     {
         .fxnTablePtr = &NVSSPI25X_fxnTable,
         .object = &nvsSPI25XObjects[0],
         .hwAttrs = &nvsSPI25XHWAttrs[0],
     },
+#endif
 };
 
 const uint_least8_t NVS_count = CC2640R2_LAUNCHXL_NVSCOUNT;
@@ -617,11 +640,12 @@ const uint_least8_t PWM_count = CC2640R2_LAUNCHXL_PWMCOUNT;
  */
 #include <ti/drivers/rf/RF.h>
 
-const RFCC26XX_HWAttrs RFCC26XX_hwAttrs = {
-    .hwiCpe0Priority = ~0,
-    .hwiHwPriority   = ~0,
-    .swiCpe0Priority =  0,
-    .swiHwPriority   =  0,
+const RFCC26XX_HWAttrsV2 RFCC26XX_hwAttrs = {
+    .hwiPriority        = ~0,       /* Lowest HWI priority */
+    .swiPriority        = 0,        /* Lowest SWI priority */
+    .xoscHfAlwaysNeeded = true,     /* Keep XOSC dependency while in stanby */
+    .globalCallback     = NULL,     /* No board specific callback */
+    .globalEventMask    = 0         /* No events subscribed to */
 };
 
 /*
@@ -639,13 +663,14 @@ const SPICC26XXDMA_HWAttrsV1 spiCC26XXDMAHWAttrs[CC2640R2_LAUNCHXL_SPICOUNT] = {
         .intPriority        = ~0,
         .swiPriority        = 0,
         .powerMngrId        = PowerCC26XX_PERIPH_SSI0,
-        .defaultTxBufValue  = 0,
+        .defaultTxBufValue  = 0xFF,
         .rxChannelBitMask   = 1<<UDMA_CHAN_SSI0_RX,
         .txChannelBitMask   = 1<<UDMA_CHAN_SSI0_TX,
         .mosiPin            = CC2640R2_LAUNCHXL_SPI0_MOSI,
         .misoPin            = CC2640R2_LAUNCHXL_SPI0_MISO,
         .clkPin             = CC2640R2_LAUNCHXL_SPI0_CLK,
-        .csnPin             = CC2640R2_LAUNCHXL_SPI0_CSN
+        .csnPin             = CC2640R2_LAUNCHXL_SPI0_CSN,
+        .minDmaTransferSize = 10
     },
     {
         .baseAddr           = SSI1_BASE,
@@ -653,13 +678,14 @@ const SPICC26XXDMA_HWAttrsV1 spiCC26XXDMAHWAttrs[CC2640R2_LAUNCHXL_SPICOUNT] = {
         .intPriority        = ~0,
         .swiPriority        = 0,
         .powerMngrId        = PowerCC26XX_PERIPH_SSI1,
-        .defaultTxBufValue  = 0,
+        .defaultTxBufValue  = 0xFF,
         .rxChannelBitMask   = 1<<UDMA_CHAN_SSI1_RX,
         .txChannelBitMask   = 1<<UDMA_CHAN_SSI1_TX,
         .mosiPin            = CC2640R2_LAUNCHXL_SPI1_MOSI,
         .misoPin            = CC2640R2_LAUNCHXL_SPI1_MISO,
         .clkPin             = CC2640R2_LAUNCHXL_SPI1_CLK,
-        .csnPin             = CC2640R2_LAUNCHXL_SPI1_CSN
+        .csnPin             = CC2640R2_LAUNCHXL_SPI1_CSN,
+        .minDmaTransferSize = 10
     }
 };
 
@@ -686,6 +712,8 @@ const uint_least8_t SPI_count = CC2640R2_LAUNCHXL_SPICOUNT;
 
 UARTCC26XX_Object uartCC26XXObjects[CC2640R2_LAUNCHXL_UARTCOUNT];
 
+uint8_t uartCC26XXRingBuffer[CC2640R2_LAUNCHXL_UARTCOUNT][32];
+
 const UARTCC26XX_HWAttrsV2 uartCC26XXHWAttrs[CC2640R2_LAUNCHXL_UARTCOUNT] = {
     {
         .baseAddr       = UART0_BASE,
@@ -696,7 +724,12 @@ const UARTCC26XX_HWAttrsV2 uartCC26XXHWAttrs[CC2640R2_LAUNCHXL_UARTCOUNT] = {
         .txPin          = CC2640R2_LAUNCHXL_UART_TX,
         .rxPin          = CC2640R2_LAUNCHXL_UART_RX,
         .ctsPin         = PIN_UNASSIGNED,
-        .rtsPin         = PIN_UNASSIGNED
+        .rtsPin         = PIN_UNASSIGNED,
+        .ringBufPtr     = uartCC26XXRingBuffer[CC2640R2_LAUNCHXL_UART0],
+        .ringBufSize    = sizeof(uartCC26XXRingBuffer[CC2640R2_LAUNCHXL_UART0]),
+        .txIntFifoThr   = UARTCC26XX_FIFO_THRESHOLD_1_8,
+        .rxIntFifoThr   = UARTCC26XX_FIFO_THRESHOLD_4_8,
+        .errorFxn       = NULL
     }
 };
 
@@ -761,6 +794,12 @@ const Watchdog_Config Watchdog_config[CC2640R2_LAUNCHXL_WATCHDOGCOUNT] = {
 const uint_least8_t Watchdog_count = CC2640R2_LAUNCHXL_WATCHDOGCOUNT;
 
 /*
+ *  Board-specific initialization function to disable external flash.
+ *  This function is defined in the file CC2640R2_LAUNCHXL_fxns.c
+ */
+extern void Board_initHook(void);
+
+/*
  *  ======== CC2640R2_LAUNCHXL_initGeneral ========
  */
 void CC2640R2_LAUNCHXL_initGeneral(void)
@@ -771,43 +810,7 @@ void CC2640R2_LAUNCHXL_initGeneral(void)
         /* Error with PIN_init */
         while (1);
     }
-}
 
-/*
- *  ======== CC2640R2_LAUNCHXL_sendExtFlashByte ========
- */
-void CC2640R2_LAUNCHXL_sendExtFlashByte(PIN_Handle pinHandle, uint8_t byte)
-{
-    PIN_setOutputValue(pinHandle, CC2640R2_LAUNCHXL_SPI_FLASH_CS, 0);
-    uint8_t i;
-    for(i = 0; i < 8; i++){
-        PIN_setOutputValue(pinHandle, CC2640R2_LAUNCHXL_SPI0_CLK, 0);
-        PIN_setOutputValue(pinHandle, CC2640R2_LAUNCHXL_SPI0_MOSI, (byte >> (7 - i)) & 0x01);
-        PIN_setOutputValue(pinHandle, CC2640R2_LAUNCHXL_SPI0_CLK, 1);
-    }
-    PIN_setOutputValue(pinHandle, CC2640R2_LAUNCHXL_SPI_FLASH_CS, 1);
-}
-
-/*
- *  ======== CC2640R2_LAUNCHXL_shutDownExtFlash ========
- */
-void CC2640R2_LAUNCHXL_shutDownExtFlash(void)
-{
-    PIN_Config extFlashPinTable[] = {
-        CC2640R2_LAUNCHXL_SPI_FLASH_CS | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL | PIN_INPUT_DIS | PIN_DRVSTR_MED,
-        CC2640R2_LAUNCHXL_SPI1_CLK | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_INPUT_DIS | PIN_DRVSTR_MED,
-        CC2640R2_LAUNCHXL_SPI1_MOSI | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_INPUT_DIS | PIN_DRVSTR_MED,
-        CC2640R2_LAUNCHXL_SPI1_MISO | PIN_INPUT_EN | PIN_PULLDOWN,
-        PIN_TERMINATE
-    };
-    PIN_State extFlashPinState;
-    PIN_Handle extFlashPinHandle = PIN_open(&extFlashPinState, extFlashPinTable);
-
-    uint8_t extFlashStartup = 0xAB;
-    uint8_t extFlashShutdown = 0xB9;
-
-    CC2640R2_LAUNCHXL_sendExtFlashByte(extFlashPinHandle, extFlashStartup);
-    CC2640R2_LAUNCHXL_sendExtFlashByte(extFlashPinHandle, extFlashShutdown);
-
-    PIN_close(extFlashPinHandle);
+    /* Perform board-specific initialization */
+    //Board_initHook();
 }

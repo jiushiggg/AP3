@@ -15,7 +15,7 @@
 #define CRC_ERR             0x40
 #define RF_SEND_TIME        900     //900us
 /***** Defines *****/
-#define RF_convertMsToRatTicks(microsecond_10)    ((uint32_t)(microsecond_10) * 4 * 10)   // ((uint32_t)(milliseconds) * 4 * 1000)
+#define myRF_convertMsToRatTicks(microsecond_10)    ((uint32_t)(microsecond_10) * 4 * 10)   // ((uint32_t)(milliseconds) * 4 * 1000)
 /* Packet TX/RX Configuration */
 #define PAYLOAD_LENGTH      26
 #define DATA_ENTRY_HEADER_SIZE 8  /* Constant header size of a Generic Data Entry */
@@ -432,7 +432,7 @@ static RF_CmdHandle Rf_rx_package(RF_Handle h,dataQueue_t *dataQueue, uint8_t* i
     RF_cmdPropRxAdv.endTrigger.triggerType = (enableTrigger? TRIG_ABSTIME : TRIG_NEVER );
     RF_cmdPropRxAdv.endTrigger.bEnaCmd = (enableTrigger? 1 : 0 );
     RF_cmdPropRxAdv.endTime = RF_getCurrentTime();
-    RF_cmdPropRxAdv.endTime += RF_convertMsToRatTicks(timeout);  //10us
+    RF_cmdPropRxAdv.endTime += myRF_convertMsToRatTicks(timeout);
 //    RF_cmdPropRxAdv.pktConf.bRepeatOk = 1;
 //    RF_cmdPropRxAdv.pktConf.bUseCrc = 0x1;
 //    RF_runCmd(rfHandle, (RF_Op*)&RF_cmdPropRx, RF_PriorityNormal, &callback, IRQ_RX_ENTRY_DONE);

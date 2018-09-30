@@ -6,7 +6,7 @@
 #include "smartrf_settings.h"
 #include <stdlib.h>
 #include <ti/devices/cc26x0r2/driverlib/rf_data_entry.h>
-#include <ti/devices/cc26x0/inc/hw_rfc_dbell.h>
+#include <ti/devices/cc26x0r2/inc/hw_rfc_dbell.h>
 #include <ti/devices/cc26x0r2/driverlib/rf_prop_mailbox.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/drivers/utils/list.h>

@@ -38,7 +38,6 @@
 #include <stdint.h>
 
 /* POSIX Header files */
-#include <pthread.h>
 
 /* RTOS header files */
 #include <ti/sysbios/BIOS.h>

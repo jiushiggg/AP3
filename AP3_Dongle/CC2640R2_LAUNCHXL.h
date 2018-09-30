@@ -68,7 +68,7 @@ extern const PIN_Config BoardGpioInitTable[];
 
 /* Defines */
 #define CC2640R2_LAUNCHXL
-
+#define Board_EXCLUDE_NVS_INTERNAL_FLASH
 /* Mapping of pins to board signals using general board aliases
  *      <board signal alias>                  <pin mapping>
  */
@@ -104,14 +104,6 @@ extern const PIN_Config BoardGpioInitTable[];
 /* I2C */
 #define CC2640R2_LAUNCHXL_I2C0_SCL0             IOID_4
 #define CC2640R2_LAUNCHXL_I2C0_SDA0             IOID_5
-
-/* LCD (430BOOST - Sharp96 Rev 1.1) */
-#define CC2640R2_LAUNCHXL_LCD_CS                IOID_24 /* SPI chip select */
-#define CC2640R2_LAUNCHXL_LCD_EXTCOMIN          IOID_12 /* External COM inversion */
-#define CC2640R2_LAUNCHXL_LCD_ENABLE            IOID_22 /* LCD enable */
-#define CC2640R2_LAUNCHXL_LCD_POWER             IOID_23 /* LCD power control */
-#define CC2640R2_LAUNCHXL_LCD_CS_ON             1
-#define CC2640R2_LAUNCHXL_LCD_CS_OFF            0
 
 /* LEDs */
 #define CC2640R2_LAUNCHXL_PIN_LED_ON            1
@@ -182,6 +174,14 @@ void CC2640R2_LAUNCHXL_initGeneral(void);
  *
  */
 void CC2640R2_LAUNCHXL_shutDownExtFlash(void);
+
+/*!
+ *  @brief  Wake up the external flash present on the board files
+ *
+ *  This function toggles the chip select for the amount of time needed
+ *  to wake the chip up.
+ */
+void CC2640R2_LAUNCHXL_wakeUpExtFlash(void);
 
 /*!
  *  @def    CC2640R2_LAUNCHXL_ADCBufName
@@ -298,8 +298,12 @@ typedef enum CC2640R2_LAUNCHXL_I2CName {
  *  @brief  Enum of NVS names
  */
 typedef enum CC2640R2_LAUNCHXL_NVSName {
-//    CC2640R2_LAUNCHXL_NVSCC26XX0 = 0,
+#ifndef Board_EXCLUDE_NVS_INTERNAL_FLASH
+    CC2640R2_LAUNCHXL_NVSCC26XX0 = 0,
+#endif
+#ifndef Board_EXCLUDE_NVS_EXTERNAL_FLASH
     CC2640R2_LAUNCHXL_NVSSPI25X0,
+#endif
 
     CC2640R2_LAUNCHXL_NVSCOUNT
 } CC2640R2_LAUNCHXL_NVSName;

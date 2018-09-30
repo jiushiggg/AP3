@@ -17,11 +17,12 @@
 #if defined(PCIE)
     #pragma location = (TRANS_BUF_ADDR)
     uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+    uint8_t spi_send_buf[0];
 #elif defined(AP_3)
     #pragma location = (TRANS_BUF_ADDR)
-    uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for UART receiving data
+    uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for SPI receiving data
     #pragma location = (TRANS_BUF_ADDR+TRANS_BUF_SIZE)
-    uint8_t spi_send_buf[TRANS_BUF_SIZE] = {0x55};          //the buffer used for UART sending data
+    uint8_t spi_send_buf[TRANS_BUF_SIZE] = {0x55};          //the buffer used for SPI sending data
 #else
 #endif
 
