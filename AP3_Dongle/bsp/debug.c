@@ -9,14 +9,6 @@
 
 volatile UINT32 s_debug_level = DEBUG_LEVEL_DFAULT;
 
-#if defined(PCIE)
-#define GGGDELAY    8
-#elif defined(AP_3)
-#define GGGDELAY    0
-#else
-#define GGGDELAY    0
-#endif
-
 #define LOG_SIZE    64
 
 unsigned char debug_buf[LOG_SIZE];
@@ -283,7 +275,6 @@ void pdebughex(UINT8 *src, UINT16 len){
 void pdebug(const char *format, ...)
 {
     int len = 0;
-    int i = 0;
     uint8_t *ptr = debug_buf;
 
     if(s_debug_level >= DEBUG_LEVEL_DEBUG)
@@ -295,18 +286,13 @@ void pdebug(const char *format, ...)
         va_end(ap);
 
         len = strlen((char *)debug_buf);
-        for(i=0;i<len;i++)
-        {
-            debugWrite(ptr++,1);
-            BSP_Delay10US(GGGDELAY);
-        }
+        debugWrite(ptr,len);
     }
 }
 void perr(const char *format, ...){}
 void pinfo(const char *format, ...)
 {
     int len = 0;
-    int i = 0;
     uint8_t *ptr = debug_buf;
 
     if(s_debug_level >= DEBUG_LEVEL_INFO)
@@ -318,18 +304,13 @@ void pinfo(const char *format, ...)
         va_end(ap);
 
         len = strlen((char *)debug_buf);
-        for(i=0;i<len;i++)
-        {
-            debugWrite(ptr++,1);
-            BSP_Delay10US(GGGDELAY);
-        }
+        debugWrite(ptr,len);
     }
 
 }
 void pinfoEsl(const char *format, ...)
 {
     int len = 0;
-    int i = 0;
     uint8_t *ptr = debug_buf;
 
     if(s_debug_level >= DEBUG_LEVEL_INFO)
@@ -341,11 +322,7 @@ void pinfoEsl(const char *format, ...)
         va_end(ap);
 
         len = strlen((char *)debug_buf);
-        for(i=0;i<len;i++)
-        {
-            debugWrite(ptr++,1);
-            BSP_Delay10US(GGGDELAY);
-        }
+        debugWrite(ptr,len);
     }
 
 }
@@ -356,7 +333,6 @@ void perrhex(UINT8 *src, UINT16 len){}
 void log_print(const char *fmt, ...)
 {
     int len = 0;
-    int i = 0;
 //    BSP_lowGPIO(DEBUG_TEST);
 
     uint8_t *ptr = debug_buf;
@@ -367,13 +343,8 @@ void log_print(const char *fmt, ...)
     va_end(ap);
 
     len = strlen((char *)debug_buf);
-//    debugWrite(ptr,len);
-    for(i=0;i<len;i++)
-    {
-        debugWrite(ptr++,1);
-        BSP_Delay10US(GGGDELAY);
+    debugWrite(ptr,len);
 
-    }
 //    BSP_highGPIO(DEBUG_TEST);
 }
 
