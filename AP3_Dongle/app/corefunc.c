@@ -98,44 +98,6 @@ UINT8 Core_SendData(UINT8 *src, UINT32 len)
 	}
 }
 
-UINT8 Core_CheckBinData(UINT32 addr)
-{
-//	UINT32 bin_len = 0;
-//	UINT32 bin_addr = 0;
-//
-//	Flash_Read(addr+4+2, (UINT8 *)&bin_len, sizeof(bin_len));
-//	bin_addr = addr+4+2+4;
-//	pdebug("core check bin, addr = 0x%08X, len = %d.\r\n", bin_addr, bin_len);
-//	return check_bin_data(bin_addr, bin_len);
-    return 0;
-}
-
-UINT8 Core_SetBootData(UINT32 addr)
-{
-//	UINT32 bin_len = 0;
-//	UINT32 bin_addr = 0;
-//	UINT32 free_addr = 0;
-	UINT8 ret = 0;
-	
-//	Flash_Read(addr+4+2, (UINT8 *)&bin_len, sizeof(bin_len));
-//	bin_addr = addr+4+2+4;
-//	pdebug("Core_SetBootData, bin_addr = 0x%08X, bin_len = %d.\r\n", bin_addr, bin_len);
-//	if((free_addr=get_free_addr()) == 0)
-//	{
-//		pdebug("error: get free addr = 0x%08X.\r\n", free_addr);
-//		goto done;
-//	}
-//
-//	if(!set_boot_data(free_addr, 0, bin_addr, bin_len))
-//	{
-//		pdebug("error: set_boot_data.\r\n");
-//		goto done;
-//	}
-	ret = 1;
-//done:
-	return ret;
-}
-
 INT32 Core_MakeCmdBuf(UINT16 cmd, UINT8 *cmd_data, INT32 data_len, UINT8 *dst, INT32 dst_size)
 {
 	INT32 cmd_len = 0;

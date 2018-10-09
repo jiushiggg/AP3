@@ -170,14 +170,14 @@ void Core_RxHandler(void)
 		case CORE_CMD_SCAN_WKUP:
 			Core_HandleScanWkup(&local_task);
 			break;
+#if defined(ASSAP)			
 		case CORE_CMD_ASS_ACK:
 			Core_HandleAssAck(&local_task);
 			break;
+#endif
 		case CORE_CMD_RF_TXRX:
 			core_handle_rf_txrx(&local_task);
 			break;
-		case CORE_CMD_ESL_ACK_REQUEST:
-//			Core_HandleQueryEslUpdataAck(&local_task);
 		case CORE_CMD_SCAN_DEVICE:   //0x1006
 		    Core_HandleScanAck(&local_task);
 		    break;
@@ -452,7 +452,7 @@ void Core_Mainloop(void)
             }
             Event_Clear(EVENT_SCAN_BG);
         }
-
+#if defined(ASSAP)
         if(event & EVENT_ASS_ACK)
         {
             assap_ack_table_t *p_assap_ack_table = Core_Malloc(sizeof(assap_ack_table_t));
@@ -508,7 +508,7 @@ void Core_Mainloop(void)
             }
             Event_Clear(EVENT_SCAN_WKUP);
         }
-
+#endif
         if(event & EVENT_RF_TXRX)
         {
             pinfo("Core rf test\r\n");

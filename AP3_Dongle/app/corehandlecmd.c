@@ -19,7 +19,9 @@ eventStatus Core_CheckBusy(void)
 		|| (e & EVENT_G3_HEARTBEAT)
 		|| (e & EVENT_RC_REQ)
 		|| (e & EVENT_SCAN_WKUP)
+#if defined(ASSAP)		
 		|| (e & EVENT_ASS_ACK)
+#endif
 		|| (e & EVENT_SCAN_BG)
 		|| (e & EVENT_RF_TXRX))
 	{
@@ -230,11 +232,11 @@ void Core_SetRfLog(core_task_t *task)
 }
 
 extern UINT32 core_idel_flag;
-void Core_BackToIdel(core_task_t *task)
-{
-	pinfo("core set system back to idel!\r\n");
-	core_idel_flag = 1;
-}
+//void Core_BackToIdel(core_task_t *task)
+//{
+//	pinfo("core set system back to idel!\r\n");
+//	core_idel_flag = 1;
+//}
 
 void Core_HandleScanWkup(core_task_t *task)
 {
@@ -251,7 +253,7 @@ void Core_HandleScanWkup(core_task_t *task)
 		Event_Set(EVENT_SCAN_WKUP);
 	}
 }
-
+#if defined(ASSAP)
 void Core_HandleAssAck(core_task_t *task)
 {
 	if(EVENT_BUSY == Core_CheckBusy())
@@ -259,14 +261,15 @@ void Core_HandleAssAck(core_task_t *task)
 		task->ack = 0x10F1; // busy
 		task->ack_len = 0;
 		task->ack_ptr = NULL;
-		
+
 		Core_TxHandler();
 	}
 	else
-	{	
+	{
 		Event_Set(EVENT_ASS_ACK);
 	}
 }
+#endif
 void Core_HandleCalibrateFreq(core_task_t *task)
 {
     if(EVENT_BUSY == Core_CheckBusy())
