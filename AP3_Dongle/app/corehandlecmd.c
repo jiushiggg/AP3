@@ -137,23 +137,6 @@ void Core_HandleEslUpdataReq(core_task_t *task)
 	}
 }
 
-void Core_HandleQueryEslUpdataAck(core_task_t *task)
-{
-	/* handle cmd */
-	if(EVENT_BUSY == Core_CheckBusy())
-	{
-		task->ack = 0x10F1; // busy
-		task->ack_len = 0;
-		task->ack_ptr = NULL;
-
-		Core_TxHandler();
-	}
-	else
-	{
-	    Event_communicateSet(EVENT_COMMUNICATE_TX_ESL_ACK);
-	}
-}
-
 void Core_HandleG3Heartbeat(core_task_t *task)
 {
 	/* handle cmd */

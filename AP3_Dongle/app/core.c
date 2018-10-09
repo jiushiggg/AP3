@@ -255,10 +255,6 @@ void Core_Mainloop(void)
             pinfo("cp2flash exit\r\n");
             Event_Clear(EVENT_COMMUNICATE_RX_TO_FLASH);
         }
-        if (event & EVENT_COMMUNICATE_TX_ESL_ACK){
-            pinfo("core tx esl ack.\r\n");
-            Event_Clear(EVENT_COMMUNICATE_TX_ESL_ACK);
-        }
         if(event & EVENT_COMMUNICATE_SCAN_DEVICE){
             pinfo("core uart send ack.\r\n");
             Core_SendAck(CORE_CMD_ACK, 0, NULL);

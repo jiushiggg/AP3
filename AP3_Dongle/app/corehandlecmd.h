@@ -5,7 +5,6 @@
 
 void Core_HandleSoftReboot(void);
 void Core_HandleEslUpdataReq(core_task_t *task);
-void Core_HandleQueryEslUpdataAck(core_task_t *task);
 void Core_HandleG3Heartbeat(core_task_t *task);
 void Core_HandleQuerySoftVer(core_task_t *task);
 void Core_HandleQueryStatus(core_task_t *task);
