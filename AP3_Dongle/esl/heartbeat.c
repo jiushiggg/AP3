@@ -432,6 +432,7 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 		pinfo("_hb_recv() send esl uplink\r\n");
 //		BSP_Delay1MS(100);      //todo:delay 100ms, why?
 	}
+#if defined(PCIE)
 	else if(ret == RC_UPLINK_DATA)  //need response the esl and uplink the data
 	{
 	    BSP_Delay1MS(table->apid);
@@ -456,7 +457,7 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 	        uplink(table->uplink_buf, sizeof(cmd)+sizeof(cmd_len)+cmd_len);
 	    }
 	}
-
+#endif
 	
 	if(recv_len_total >= 0)
 	{
