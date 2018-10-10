@@ -293,6 +293,7 @@ typedef struct st_ap2rc{
 }st_ap2rc;
 #pragma pack()
 
+#if defined(PCIE)
 static INT32 _ack_the_rc(UINT8 *uplink_data, g3_hb_table_t *table)
 {
     st_rc2ap *data = (st_rc2ap*)uplink_data;
@@ -310,6 +311,7 @@ static INT32 _ack_the_rc(UINT8 *uplink_data, g3_hb_table_t *table)
 
     return 0;
 }
+#endif
 
 extern UINT32 core_idel_flag;
 
