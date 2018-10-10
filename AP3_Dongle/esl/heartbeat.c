@@ -404,6 +404,7 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 				ret = 0;
 			}
 		}
+#if defined(PCIE)
 		else if(ret == RC_UPLINK_DATA)
 		{
 		    break;
@@ -413,6 +414,7 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 		    if(ret == SURVEY_DATA)
 		        break;
 		}
+#endif
 		BSP_Delay1MS(table->interval);
 	}
 
