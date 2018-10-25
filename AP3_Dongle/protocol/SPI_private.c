@@ -455,6 +455,9 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 
     if ((ptr[sizeof(st_SPI_privateHead)] | (uint16_t)ptr[sizeof(st_SPI_privateHead)+1]<<8)==CORE_CMD_BACK_TO_IDLE && SPIPRIVATE_LEN_ALL==trans->count){
         core_idel_flag = 1;
+        if (privateState==ST_SPI_INIT){
+            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+        }
         SPIP_DEBUG(("1111\r\n"));
     }else if (SPI_recCmdAckFlg == true && SPIPRIVATE_LEN_ALL==trans->count){
         Device_Recv_post();

@@ -157,6 +157,8 @@ void rf_init(void)
 const uint16_t rf_all_tx_power[ALL_POWER_LEVEL]={0x0cc5,0x0cc6, 0x0cc7, 0x0cc9,0x0ccb,0x144b, 0x194e,0x1d52, 0x2558, 0x3161, 0x4214,0x4e18,0x5a1c, 0x9324, 0x9330};
 //T3 board 13dbm, 10dbm, 6dbm, 0dbm
 uint16_t rf_tx_power[POWER_LEVEL]={0x1d52, 0x194e, 0xCCB, 0x0cc7};
+#define POWER_LEVEL2    2
+#define POWER_LEVEL_MAX (sizeof(rf_tx_power)-1)
 #else
 #define POWER_LEVEL  15
 #define MIN_POWER_LEVE -25
@@ -268,6 +270,7 @@ void set_power_rate(int8_t Tx_power, uint16_t Data_rate)
     }
 #ifdef ESLWORKING_SET
     if (RF_DEFAULT_POWER != Tx_power){
+        Tx_power = (Tx_power<0 || Tx_power>POWER_LEVEL_MAX) ? POWER_LEVEL2 : Tx_power;
         RF_cmdPropRadioSetup.txPower = rf_tx_power[Tx_power];
     }
 
