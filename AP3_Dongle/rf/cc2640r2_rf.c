@@ -158,7 +158,7 @@ const uint16_t rf_all_tx_power[ALL_POWER_LEVEL]={0x0cc5,0x0cc6, 0x0cc7, 0x0cc9,0
 //T3 board 13dbm, 10dbm, 6dbm, 0dbm
 uint16_t rf_tx_power[POWER_LEVEL]={0x1d52, 0x194e, 0xCCB, 0x0cc7};
 #define POWER_LEVEL2    2
-#define POWER_LEVEL_MAX (sizeof(rf_tx_power)-1)
+#define POWER_LEVEL_MAX (sizeof(rf_tx_power)/sizeof(rf_tx_power[0])-1)
 #else
 #define POWER_LEVEL  15
 #define MIN_POWER_LEVE -25
