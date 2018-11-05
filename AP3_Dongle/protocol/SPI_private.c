@@ -164,7 +164,7 @@ static void SPIPrivate_end(uint8_t* buf_ptr, st_SPI_private * tmp)
     tmp->head.len = SPI_LAST_PCK;
     packetData(buf_ptr, 0, tmp, CALCU_CRC);
     memset((uint8_t*)&spi_sn, 0, sizeof(spi_sn));
-
+//    UART_send("SPIend", 6);
     SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
 }
 
@@ -282,6 +282,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 privateState = ST_SPI_SEND_DATA;
                 break;
             case ST_SPI_END:
+//                pinfo("A:");
                 SPIPrivate_end(tx_ptr, &tmp);
                 exit_flg = true;
                 privateState = ST_SPI_INIT;
@@ -290,6 +291,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 SPIP_DEBUG(("->ST_SPI_ERR\r\n"));
                 //no break;
             default:
+//                pinfo("B:");
                 privateState = ST_SPI_INIT;
                 SPIPrivate_end(tx_ptr, &tmp);
                 exit_flg = true;
@@ -385,6 +387,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 privateState = packageSend(tx_ptr, (tmp.head.len&SPI_LEN_MASK)+sizeof(calu_crc)+sizeof(st_SPI_privateHead), x, timeout);
                 break;
             case ST_SPI_END:
+//                pinfo("C:");
                 SPIPrivate_end(tx_ptr, &tmp);
                 exit_flg = true;
                 privateState = ST_SPI_INIT;
@@ -393,6 +396,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 SPIP_DEBUG(("->ST_SPI_ERR\r\n"));
                 //no break;
             default:
+//                pinfo("D:");
                 privateState = ST_SPI_INIT;
                 SPIPrivate_end(tx_ptr, &tmp);
                 exit_flg = true;
@@ -458,7 +462,9 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
         if (privateState==ST_SPI_INIT){
             SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
         }
-        SPIP_DEBUG(("1111\r\n"));
+//        UART_send("idlecmd", 7);
+//        pinfo("%d\r\n", privateState);
+//        SPIP_DEBUG(("1111%d\r\n", privateState));
     }else if (SPI_recCmdAckFlg == true && SPIPRIVATE_LEN_ALL==trans->count){
         Device_Recv_post();
         SPIP_DEBUG(("2222\r\n"));
@@ -474,6 +480,9 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
         if (privateState!=ST_SPI_INIT){
             SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
         }
+//        UART_send("ISRERR", 6);
+//        pinfo("%d\r\n", privateState);
+
     }
     spi_recv_len_once = trans->count;
 }

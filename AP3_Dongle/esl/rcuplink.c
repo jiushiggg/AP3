@@ -128,7 +128,7 @@ static INT32 _recv(rcreq_table_t *table)
 	pdebug("_recv\r\n");
 	while(1)
 	{
-		if(core_idel_flag == 1)
+		if(Core_GetQuitStatus() == 1)
 		{
 			pinfo("back to idel\r\n");
 			core_idel_flag = 0;
