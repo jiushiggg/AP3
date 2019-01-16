@@ -43,7 +43,7 @@
 #ifdef GOLD_BOARD
 const unsigned char APP_VERSION_STRING[] = "rfd-6.0.0"; //must < 32
 #else
-const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.2"; //must < 32
+const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.3"; //must < 32
 #endif
 
 
@@ -107,9 +107,6 @@ void app_init(void)
 }
 
 
-#define RX_LEN  26
-uint8_t mylen =0, mybuf[RX_LEN] = {0};
-
 void *mainThread(void *arg0)
 {
     Board_initSPI();
@@ -126,21 +123,23 @@ void *mainThread(void *arg0)
 //            Task_sleep(10);
 //        }
 
+    Core_Init();
+    pinfo("core init complete.\r\n");
 
     if(Flash_Init() == 1)
     {
+    	local_task.ack_buf.buf[0] = 0;
         pinfo("flash init successfully.\r\n");
     }
     else
     {
-        Event_Set(EVENT_FLASH_ERR);
+    	local_task.ack_buf.buf[0] = 1;
         perr("flash init fail.\r\n");
     }
 
     protocol_peripheralInit();
     pinfo("peripheral init complete\r\n");
-    Core_Init();
-    pinfo("core init complete.\r\n");
+
     pinfo("enter main loop.\r\n");
 //#define LIST
 #ifdef LIST

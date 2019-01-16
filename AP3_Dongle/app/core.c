@@ -257,7 +257,11 @@ void Core_Mainloop(void)
         }
         if(event & EVENT_COMMUNICATE_SCAN_DEVICE){
             pinfo("core uart send ack.\r\n");
-            Core_SendAck(CORE_CMD_ACK, sizeof(calib), (uint8_t*)&calib);
+        	memcpy (local_task.ack_buf.buf+1, (uint8_t*)&calib, sizeof(calib));
+        	memcpy (local_task.ack_buf.buf+1+sizeof(calib), (uint8_t*)rf_tx_power, sizeof(rf_tx_power));
+            local_task.ack_len = 1 + sizeof(calib) + sizeof(rf_tx_power);
+            local_task.ack_ptr = local_task.ack_buf.buf;
+            Core_SendAck(CORE_CMD_ACK, local_task.ack_len, local_task.ack_ptr);
             Event_Clear(EVENT_COMMUNICATE_SCAN_DEVICE);
         }
         if(event & EVENT_PARSE_DATA)

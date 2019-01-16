@@ -32,7 +32,6 @@ typedef struct calib_value{
 typedef struct MyStruct {
     List_Elem elem;
     rfc_CMD_PROP_TX_ADV_t *tx;
-    uint8_t pbuf[26];
 } MyStruct;
 #pragma pack()
 
@@ -92,6 +91,7 @@ extern UINT8 data0[PAYLOAD_LENGTH];
 extern UINT8 data1[PAYLOAD_LENGTH];
 extern int32_t frequency_offset;
 extern int8_t power_offset;
+extern uint16_t rf_tx_power[POWER_LEVEL];
 
 extern void rf_init(void);
 extern void semaphore_RFInit(void);
