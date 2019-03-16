@@ -42,23 +42,37 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
     SPI_transfer(handle, &transaction);
 }
 
-uint16_t SPI_appSend(void *buffer, uint16_t size)
+bool SPI_appSend(void *buffer, uint16_t size)
 {
-    GPIO_write(Board_SPI_SLAVE_READY, 1);
-//    transaction.txBuf = buffer;
-    transaction.count = size;
-    SPI_transfer(handle, &transaction);
-    GPIO_write(Board_SPI_SLAVE_READY, 0);
-    return size;
+	bool ret = false;
+	if (transaction.status!=SPI_TRANSFER_STARTED){
+		GPIO_write(Board_SPI_SLAVE_READY, 1);
+	//    transaction.txBuf = buffer;
+		transaction.count = size;
+		ret = SPI_transfer(handle, &transaction);
+		if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
+			SPI_transferCancel(handle);
+			ret = SPI_transfer(handle, &transaction);
+		}
+		GPIO_write(Board_SPI_SLAVE_READY, 0);
+	}
+    return ret;
 }
 
-uint16_t SPI_appRecv(void *buffer, uint16_t size)
+bool SPI_appRecv(void *buffer, uint16_t size)
 {
-    GPIO_write(Board_SPI_SLAVE_READY, 1);
-//    transaction.rxBuf = buffer;
-    transaction.count = size;
-    SPI_transfer(handle, &transaction);
-    return size;
+	bool ret = false;
+	if (transaction.status!=SPI_TRANSFER_STARTED){
+		GPIO_write(Board_SPI_SLAVE_READY, 1);
+	//    transaction.rxBuf = buffer;
+		transaction.count = size;
+		ret = SPI_transfer(handle, &transaction);
+		if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
+			SPI_transferCancel(handle);
+			ret = SPI_transfer(handle, &transaction);
+		}
+	}
+    return ret;
 }
 
 void SPI_cancle(void)
