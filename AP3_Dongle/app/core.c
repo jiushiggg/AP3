@@ -35,7 +35,6 @@
 #include "updata.h"
 #include "thread.h"
 #include "cc2640r2_rf.h"
-#include "communicate.h"
 #include "event.h"
 #include "protocol.h"
 

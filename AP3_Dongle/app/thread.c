@@ -32,7 +32,6 @@
 #include "flash.h"
 #include "core.h"
 //#include "protocol.h"
-#include "communicate.h"
 #include "bsp.h"
 #include "bsp_spi.h"
 #include "timer.h"

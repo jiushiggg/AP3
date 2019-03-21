@@ -7,7 +7,6 @@
 #include "bsp.h"
 #include "rftest.h"
 #include "thread.h"
-#include "communicate.h"
 
 
 
