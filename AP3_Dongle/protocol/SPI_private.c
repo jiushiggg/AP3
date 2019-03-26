@@ -502,7 +502,7 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 	            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
 	        }
 			SPIP_DEBUG(("1111\r\n"));
-		}else if (privateState>ST_SPI_SEND_INIT && privateState<ST_SPI_EXIT){
+		}else if (privateState>ST_SPI_RECV_INIT && privateState<ST_SPI_EXIT){
 			Device_Recv_post();
 			//SPIP_DEBUG(("2222\r\n"));
 			SPIP_DEBUG(("2:%d\r\n", privateState));
