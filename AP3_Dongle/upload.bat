@@ -22,7 +22,7 @@ if "%bleflg%" == "y" (
 REM echo %tmp%
 
 SET myPath=%~dp0Debug
-SET UploadProgramPath=..\UploadProgram
+SET UploadProgramPath=F:\AP3_Dongle\UploadProgram
 SET FILENAME=AP3_Dongle.bin
 SET FILENAMEZIP=AP3_Dongle.zip
 
