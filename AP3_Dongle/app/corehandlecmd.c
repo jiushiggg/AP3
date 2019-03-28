@@ -22,7 +22,8 @@ eventStatus Core_CheckBusy(void)
 		|| (e & EVENT_ASS_ACK)
 #endif
 		|| (e & EVENT_SCAN_BG)
-		|| (e & EVENT_RF_TXRX))
+		|| (e & EVENT_RF_TXRX)
+		|| (e & EVENT_COMMUNICATE_RX_TO_FLASH))
 	{
 		return EVENT_BUSY;
 	}

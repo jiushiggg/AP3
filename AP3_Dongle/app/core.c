@@ -37,6 +37,7 @@
 #include "cc2640r2_rf.h"
 #include "event.h"
 #include "protocol.h"
+#include "appSPI.h"
 
 #pragma location=(CORE_TASK_ADDR)
 core_task_t local_task;
@@ -526,5 +527,6 @@ void Core_Mainloop(void)
             Core_ResetQuitStatus();
         }
 
+        SPI_appRecv(NULL, SPIPRIVATE_LEN_ALL);
     }
 }

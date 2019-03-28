@@ -467,6 +467,7 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
 {
     int32_t ret_len = 0;
     SPIP_DEBUG(("-------------SPIPrivate_recv---\r\n"));
+    memset((uint8_t*)&spi_sn, 0, sizeof(sn_t));
     ret_len = SPI_recv(&spi_sn, (uint32_t)read_buf, len, EVENT_WAIT_US(10000000), NULL);
     SPIP_DEBUG(("---SPIPrivate_recv exit---%d\r\n", ret_len));
     return ret_len;
@@ -494,18 +495,15 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 
     if ((trans->status)==SPI_TRANSFER_CSN_DEASSERT
         || (trans->status)==SPI_TRANSFER_COMPLETED){
-		if (ptr->cmd==CORE_CMD_BACK_TO_IDLE){
-			if (ptr->len==0 && ptr->head.len==0x1006){            //没有计算CRC，简单的判断长度。6=data_cmd+data_len，0x1000表示最后一包
-				core_idel_flag = 1;
-			}
+		if (ptr->cmd==CORE_CMD_BACK_TO_IDLE && ptr->len==0 && ptr->head.len==0x1006 && ptr->head.sn==0){	 //没有计算CRC，简单的判断长度。6=data_cmd+data_len，0x1000表示最后一包
+			core_idel_flag = 1;
 	        if (privateState==ST_SPI_EXIT){
 	            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
 	        }
 			SPIP_DEBUG(("1111\r\n"));
-		}else if (privateState>=ST_SPI_RECV_INIT && privateState<ST_SPI_EXIT){
+		}else if (privateState<ST_SPI_EXIT){
 			Device_Recv_post();
 			//SPIP_DEBUG(("2222\r\n"));
-			SPIP_DEBUG(("2:%d\r\n", privateState));
 		}else{
 			Event_Set(EVENT_COMMUNICATE_RX_HANDLE);
 			Device_Recv_post();

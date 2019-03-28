@@ -47,7 +47,7 @@ UINT8 Core_RecvDataToFlash(UINT32 addr, UINT32 len)
 	sn_t x;
 	UINT32 tmp_len;
 	memset(&x, 0, sizeof(sn_t));
-	tmp_len = protocol_recvToFlash(&x, addr, len, 5000);
+	tmp_len = protocol_recvToFlash(&x, addr, len, 100000);
 
 	if(tmp_len >= len)
 	{

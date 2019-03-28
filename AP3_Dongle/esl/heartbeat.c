@@ -313,7 +313,6 @@ static INT32 _ack_the_rc(UINT8 *uplink_data, g3_hb_table_t *table)
 }
 #endif
 
-extern UINT32 core_idel_flag;
 
 static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 len))
 {
