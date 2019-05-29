@@ -123,7 +123,7 @@ static INT32 _check_hb_data(UINT8 *src, UINT8 len)
                 return NORMAL_DATA;
             }
         }
-        else if((ctrl==0xF0)||(ctrl==0x50)||(ctrl==0xE0))
+        else if((ctrl==0xF0)||(ctrl==0x50)||(ctrl==0xE0)||(ctrl==0x10))
         {
             memcpy(id, src+5, sizeof(id));
             cal_crc = CRC16_CaculateStepByStep(cal_crc, src, len-2);
