@@ -111,6 +111,9 @@ INT32 wakeup_start(UINT32 addr, UINT32 len, UINT8 type)
 	{
 		duration_ms = (uint32_t)duration * 1000 - 500;
 	}
+	if (3 == duration){
+		duration_ms -= 300;
+	}
 	
 	if((timer=TIM_Open(slot_duration, duration_ms/slot_duration, TIMER_DOWN_CNT, TIMER_PERIOD)) == TIMER_UNKNOW)
 	{
