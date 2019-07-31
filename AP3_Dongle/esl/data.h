@@ -6,6 +6,7 @@
 #define CMD_SET_WKUP_GLB		0x0120
 #define CMD_SET_WKUP_CH			0x0130
 #define CMD_SET_WKUP_BDC		0x0101
+#define CMD_SET_LED_FLASH       0x0103
 
 #define	CMD_GROUP1				0x0200
 #define	CMD_GROUP1_FRAME1		0x0240
@@ -47,6 +48,12 @@
 
 #define MASK_OF_PKG_SN			((UINT16)0x3FFF)
 
+#pragma pack(1)
+typedef struct st_basic_data_head{
+    uint8_t id[4];
+    uint8_t ch;
+    uint8_t data_len;
+}st_basic_data_head;
 
 typedef struct {
 	UINT8 id[4];
@@ -60,6 +67,7 @@ typedef struct {
 	UINT8 ack;
 }g3_seg_ack_t;
 
+#pragma pack()
 
 INT32 get_updata_para(UINT32 addr, void *dst);
 INT32 get_frame1_para(UINT32 addr, void *dst);
@@ -87,3 +95,4 @@ void g3_print_data(UINT32 addr, UINT32 len);
 void g3_print_ack(UINT32 addr, UINT32 len);
 void g3_set_print(UINT8 enable);
 UINT16 g3_get_wkup_interval(UINT32 wkup_start_addr);
+INT32 get_flash_led_data(UINT32 addr, void *data, UINT16 len);

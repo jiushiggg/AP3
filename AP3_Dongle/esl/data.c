@@ -51,7 +51,50 @@ UINT32 g3_get_sid(UINT32 addr)
 		return sid;
 	}
 }
+INT32 get_flash_led_data(UINT32 addr, void *data, UINT16 len)
+{
+#ifdef FLASH_LED_TEST
+	uint8_t i = 0, *p = data;
+	p[0] = 2;
+	p[1] = 0;
+	p[2] = 0x50;
+	p[3] = 0x81;
+	p[4] = 0x01;
+	p[5] = 0x66;
+	p[6] = 167;
+	p[7] = 26;
 
+	p[8] = 0x11;	//ctrl+color
+	for (i=9;i<9+20;i++){
+		p[i] = 0xff;
+	}
+	p[29] = 0x0;	//page
+	p[30] = 0x0;	//page
+	p[31] = 0x0;	//reserve
+	p[32] = 0x0;	//crc
+	p[33] = 0x0;	//crc
+
+	p[34] = 0x50;
+	p[35] = 0x81;
+	p[36] = 0x01;
+	p[37] = 0x66;
+	p[38] = 167;
+	p[39] = 26;
+
+	p[40] = 0x10;	//ctrl
+	for (i=41;i<41+20;i++){
+		p[i] = 0xff;
+	}
+	p[61] = 0x0;	//page
+	p[62] = 0x0;	//page
+	p[63] = 0x0;	//reserve
+	p[64] = 0x0;	//crc
+	p[65] = 0x0;	//crc
+	return 1;
+#else
+	return Flash_Read(addr, data, len);
+#endif
+}
 INT32 get_one_data(UINT32 addr, UINT8 *id, UINT8 *ch, UINT8 *len, UINT8 *dst, UINT8 size)
 {
 	INT32 ret = 0;

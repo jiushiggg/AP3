@@ -353,6 +353,35 @@ uint16_t send_chaningmode(UINT8 *id, UINT8 *data, UINT8 len, UINT32 timeout)
                         (RF_EventCmdDone | RF_EventLastCmdDone| RF_EventCmdAborted));
     return (uint16_t)result;
 }
+uint16_t send_flash_led_data(UINT8 *id0,UINT8 *data0, UINT8 *id1, UINT8* data1)
+{
+    RF_EventMask result;
+    cc2592Cfg(CC2592_TX);
+    /* Modify CMD_PROP_TX and CMD_PROP_RX commands for application needs */
+    RF_cmdPropTxAdv[0].startTrigger.triggerType = TRIG_NOW;
+    RF_cmdPropTxAdv[0].startTrigger.pastTrig = 1;
+    RF_cmdPropTxAdv[0].startTime = 0;
+    RF_cmdPropTxAdv[0].pktLen = 6;
+    RF_cmdPropTxAdv[0].pPkt = data0;
+    RF_cmdPropTxAdv[0].syncWord = ((uint32_t)id0[0]<<24) | ((uint32_t)id0[1]<<16) | ((uint32_t)id0[2]<<8) | id0[3];
+    RF_cmdPropTxAdv[0].pNextOp = (rfc_radioOp_t *)&RF_cmdPropTxAdv[1];
+    /* Only run the RX command if TX is successful */
+    RF_cmdPropTxAdv[0].condition.rule = COND_STOP_ON_FALSE;
+
+    /* Modify CMD_PROP_TX and CMD_PROP_RX commands for application needs */
+    RF_cmdPropTxAdv[1].startTrigger.triggerType = TRIG_NOW;
+    RF_cmdPropTxAdv[1].startTrigger.pastTrig = 1;
+    RF_cmdPropTxAdv[1].startTime = 0;
+    RF_cmdPropTxAdv[1].pktLen = 26;
+    RF_cmdPropTxAdv[1].pPkt = data1;
+    RF_cmdPropTxAdv[1].syncWord = ((uint32_t)id1[0]<<24) | ((uint32_t)id1[1]<<16) | ((uint32_t)id1[2]<<8) | id1[3];
+    RF_cmdPropTxAdv[1].pNextOp = NULL;
+    /* Only run the RX command if TX is successful */
+    RF_cmdPropTxAdv[1].condition.rule = COND_STOP_ON_FALSE;
+
+    result = RF_runCmd(rfHandle, (RF_Op*)&RF_cmdPropTxAdv[0], RF_PriorityNormal, NULL, 0);
+    return (uint16_t)result;
+}
 
 void send_pend(RF_EventMask result)
 {

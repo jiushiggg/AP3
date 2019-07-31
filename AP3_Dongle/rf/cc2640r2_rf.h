@@ -117,6 +117,7 @@ extern UINT8 get_recPkgRSSI(void);
 extern UINT8 recv_data_for_hb(UINT8 *id, UINT8 *data, UINT8 len, UINT8 ch, UINT32 timeout);
 
 extern uint16_t send_chaningmode(UINT8 *id, UINT8 *data, UINT8 len, UINT32 timeout);
+extern uint16_t send_flash_led_data(UINT8 *id0,UINT8 *data0, UINT8 *id1, UINT8* data1);
 extern void RF_wait_cmd_finish(void);
 
 

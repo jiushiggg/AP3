@@ -84,6 +84,7 @@ INT32 parse_cmd_data(UINT32 cmd_data_addr, UINT32 cmd_data_len)
 			case CMD_SET_WKUP_GLB:
 			case CMD_SET_WKUP_CH:
 			case CMD_SET_WKUP_BDC:
+			case CMD_SET_LED_FLASH:
 				set_cmd = cmd;
 				set_addr = addr+sizeof(cmd)+sizeof(cmd_len);
 				set_len = cmd_len;
@@ -203,7 +204,16 @@ INT32 esl_updata(esl_updata_t *updata)
 			{
 			    pinfoEsl("sw1 bg\r\n");
 				pdebug("set wkup glb & ch\r\n");
+#ifdef FLASH_LED_TEST
+				set_wakeup_led_flash(set_addr, updata_table->data, set_len);//debug
+#else
 				wakeup_start(set_addr, set_len, 1);
+#endif
+
+			}
+			else if (set_cmd == CMD_SET_LED_FLASH)
+			{
+				set_wakeup_led_flash(set_addr, updata_table->data, set_len);
 			}
 			pinfoEsl("sw ed\r\n");
 		}
