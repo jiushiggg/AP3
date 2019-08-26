@@ -18,6 +18,7 @@ typedef enum {
 
 #define    FlashID          0xc214
 #define    FlashID_GD       0xc814
+#define    FlashID_WB       0xEF14
 
 #define VERIFY      NVS_WRITE_POST_VERIFY
 #define NOT_VERIFY  0

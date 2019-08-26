@@ -56,7 +56,7 @@ UINT8 Core_RecvDataToFlash(UINT32 addr, UINT32 len)
 	}
 	else
 	{
-	    pinfo("errlen:%d, normal:%d", tmp_len, len);
+		pinfo("write addr:%x,errlen:%d,len:%d", addr, tmp_len, len);
 		perr("Core_RecvDataToFlash() fail!\r\n");
 		return 0;
 	}

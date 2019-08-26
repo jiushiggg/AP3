@@ -119,7 +119,7 @@ UINT8 Flash_Init(void)
 	init_nvs_spi_flash();
 	//∂¡»°
 	id = CMD_RDID();
-	if ((id!=FlashID) && (id!=FlashID_GD))
+	if ((id!=FlashID) && (id!=FlashID_GD)&& (id!=FlashID_WB))
 	{
 #ifdef	FLASH_DBG
 	    log_print("FI RDID FAIL.\r\n");
@@ -203,7 +203,7 @@ find_loop:
 			goto find_loop;
 		}
 	}
-	BSP_Delay1MS(15);
+	BSP_Delay1MS(45);
 	return ret;
 }
 
