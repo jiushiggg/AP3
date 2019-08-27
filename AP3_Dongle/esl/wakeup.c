@@ -202,7 +202,7 @@ done:
 	return ret;
 }
 
-INT32 set_wakeup_led_flash(UINT32 addr, void *buf, UINT32 len)
+INT32 set_wakeup_led_flash(UINT32 set_addr, UINT32* f1_addr, void *buf, UINT32 len)
 {
 	INT32 ret = 0;
 	UINT8 timer = 0;
@@ -221,15 +221,15 @@ INT32 set_wakeup_led_flash(UINT32 addr, void *buf, UINT32 len)
 	st_led_flash_data *group_data = (st_led_flash_data*)buf;
 
 
-	pdebug("wkup addr=0x%08X, len=%d\r\n", addr, len);
+	pdebug("wkup addr=0x%08X, len=%d\r\n", set_addr, len);
 
-	if((addr==0) || (len==0))
+	if((set_addr==0) || (len==0) || *f1_addr==0)
 	{
 		ret = -1;
 		goto done;
 	}
 
-	if(g3_get_wkup_para(addr, &datarate, &power, &duration, &slot_duration, &mode) == 0)
+	if(g3_get_wkup_para(set_addr, &datarate, &power, &duration, &slot_duration, &mode) == 0)
 	{
 		perr("g3_wkup() get para from flash.\r\n");
 		ret = -2;
@@ -245,7 +245,7 @@ INT32 set_wakeup_led_flash(UINT32 addr, void *buf, UINT32 len)
 		goto done;
 	}
 
-	offset=get_one_data(addr+OFFSET_WKUP_DATA, id, &channel, &data_len, data, SIZE_ESL_DATA_BUF);
+	offset=get_one_data(set_addr+OFFSET_WKUP_DATA, id, &channel, &data_len, data, SIZE_ESL_DATA_BUF);
 	if(offset == 0)
 	{
 		perr("g3_wkup() get data from flash.\r\n");
@@ -257,13 +257,13 @@ INT32 set_wakeup_led_flash(UINT32 addr, void *buf, UINT32 len)
 			id[0], id[1], id[2], id[3], channel, data_len);
 	pdebughex(data, data_len);
 
-	if(0 == get_flash_led_data(addr+OFFSET_WKUP_DATA+offset, group_data, sizeof(st_led_flash_data)))
+	if(0 == get_flash_led_data(*f1_addr+OFFSET_FRAME1_DATA+offset, group_data, sizeof(st_led_flash_data)))
 	{
 		perr("g3_wkup() get data from flash.\r\n");
 		ret = -3;
 		goto done;
 	}
-
+	*f1_addr = 0;
 //#define GGG_DEBUG
 #ifdef GGG_DEBUG
     slot_duration = 10;

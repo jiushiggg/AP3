@@ -29,7 +29,7 @@
 #define CMD_ACK_NEW				0x0901
 
 #define OFFSET_FRAME1_PARA		0
-#define OFFSET_FRAME1_DATA		15//(2+1+1++1+8+2)
+#define OFFSET_FRAME1_DATA		13//(2+1+1+1+8)
 
 #define OFFSET_WKUP_PARA		0
 #define OFFSET_WKUP_DATA		13//(2+1+1+1+8)

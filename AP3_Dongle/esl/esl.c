@@ -213,7 +213,7 @@ INT32 esl_updata(esl_updata_t *updata)
 			}
 			else if (set_cmd == CMD_SET_LED_FLASH)
 			{
-				set_wakeup_led_flash(set_addr, updata_table->data, set_len);
+				set_wakeup_led_flash(set_addr, &frame1_addr, updata_table->data, set_len);
 			}
 			pinfoEsl("sw ed\r\n");
 		}
