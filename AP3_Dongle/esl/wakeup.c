@@ -290,7 +290,7 @@ INT32 set_wakeup_led_flash(UINT32 set_addr, UINT32* f1_addr, void *buf, UINT32 l
 	}
 	else
 	{
-		duration_ms = (uint32_t)duration * 1000 - 500;
+		duration_ms = (uint32_t)duration * 1000 - 700;
 	}
 
 	if((timer=TIM_Open(slot_duration, duration_ms/slot_duration, TIMER_DOWN_CNT, TIMER_PERIOD)) == TIMER_UNKNOW)

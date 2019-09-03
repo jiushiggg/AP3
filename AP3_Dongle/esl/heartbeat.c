@@ -322,9 +322,9 @@ static INT32 _hb_recv(g3_hb_table_t *table, UINT8 (*uplink)(UINT8 *src, UINT32 l
 	UINT32 cmd_len = 0; //data len + sizeof(num)
 	esl_uplink_info_t *pesluplinkinfo = NULL;
 	
-	pinfo("_hb_recv(), id=0x%02X-0x%02X-0x%02X-0x%02X, ch=%d, recv_datarate=%d, recv_len=%d, interval=%d, timeout=%d, lenout=%d, numout=%d, loop=%d\r\n", \
-			table->id[0], table->id[1], table->id[2], table->id[3], table->channel, table->recv_bps, \
-			table->recv_len, table->interval, table->timeout, table->lenout, table->numout, table->loop);
+	pinfo("id=%02X%02X%02X%02X,ch=%d,rate=%d,len=%d,", \
+		table->id[0], table->id[1], table->id[2], table->id[3], table->channel, table->recv_bps,table->recv_len);
+	pinfo("timeout=%d,lenout=%d,numout=%d,loop=%d\r\n",table->timeout, table->lenout,table->numout, table->loop);
 	
 	/* reset recv buf */
 	table->num = 0;
