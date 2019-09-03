@@ -45,7 +45,7 @@
 #define LEN_OF_FRAME1_PARA		15
 #define LEN_OF_BASIC_ESL_DATA	32
 
-
+//#define FLASH_LED_TEST
 #define MASK_OF_PKG_SN			((UINT16)0x3FFF)
 
 #pragma pack(1)

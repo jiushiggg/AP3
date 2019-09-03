@@ -220,10 +220,9 @@ INT32 set_wakeup_led_flash(UINT32 set_addr, UINT32* f1_addr, void *buf, UINT32 l
 	uint8_t offset = 0;
 	st_led_flash_data *group_data = (st_led_flash_data*)buf;
 
+	pdebug("wkup addr=0x%08X, f1 addr=0x%08X, len=%d\r\n", set_addr, *f1_addr, len);
 
-	pdebug("wkup addr=0x%08X, len=%d\r\n", set_addr, len);
-
-	if((set_addr==0) || (len==0) || *f1_addr==0)
+	if(set_addr==0 || len==0 || *f1_addr==0)
 	{
 		ret = -1;
 		goto done;
@@ -253,17 +252,24 @@ INT32 set_wakeup_led_flash(UINT32 set_addr, UINT32* f1_addr, void *buf, UINT32 l
 		goto done;
 	}
 
-	pdebug("wkup data: id:0x%02X-0x%02X-0x%02X-0x%02X, channel=%d, len=%d, data=", \
+	pinfo("wkup data: id:0x%02X-0x%02X-0x%02X-0x%02X, channel=%d, len=%d, data=", \
 			id[0], id[1], id[2], id[3], channel, data_len);
-	pdebughex(data, data_len);
 
-	if(0 == get_flash_led_data(*f1_addr+OFFSET_FRAME1_DATA+offset, group_data, sizeof(st_led_flash_data)))
+	if(0 == get_flash_led_data(*f1_addr+OFFSET_FRAME1_DATA, group_data, sizeof(st_led_flash_data)))
 	{
 		perr("g3_wkup() get data from flash.\r\n");
 		ret = -3;
 		goto done;
 	}
 	*f1_addr = 0;
+
+#if FLASH_LED_TEST
+	pinfo("num:%d ", group_data->group_num);
+	for (j=0; j< group_data->group_num; j++){
+		pdebughex1((uint8_t*)&group_data->data[j], 32);
+	}
+	j = 0;
+#endif
 //#define GGG_DEBUG
 #ifdef GGG_DEBUG
     slot_duration = 10;

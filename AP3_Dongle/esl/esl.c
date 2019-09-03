@@ -204,15 +204,12 @@ INT32 esl_updata(esl_updata_t *updata)
 			{
 			    pinfoEsl("sw1 bg\r\n");
 				pdebug("set wkup glb & ch\r\n");
-#ifdef FLASH_LED_TEST
-				set_wakeup_led_flash(set_addr, updata_table->data, set_len);//debug
-#else
 				wakeup_start(set_addr, set_len, 1);
-#endif
 
 			}
 			else if (set_cmd == CMD_SET_LED_FLASH)
 			{
+				pinfo("sw2 bg\r\n");
 				set_wakeup_led_flash(set_addr, &frame1_addr, updata_table->data, set_len);
 			}
 			pinfoEsl("sw ed\r\n");

@@ -58,10 +58,10 @@ INT32 get_flash_led_data(UINT32 addr, void *data, UINT16 len)
 	p[0] = 2;
 	p[1] = 0;
 	p[2] = 0x50;
-	p[3] = 0x81;
-	p[4] = 0x01;
+	p[3] = 0x41;
+	p[4] = 0x05;
 	p[5] = 0x66;
-	p[6] = 167;
+	p[6] = 165;
 	p[7] = 26;
 
 	p[8] = 0x11;	//ctrl+color
@@ -75,10 +75,10 @@ INT32 get_flash_led_data(UINT32 addr, void *data, UINT16 len)
 	p[33] = 0x0;	//crc
 
 	p[34] = 0x50;
-	p[35] = 0x81;
-	p[36] = 0x01;
+	p[35] = 0x41;
+	p[36] = 0x07;
 	p[37] = 0x66;
-	p[38] = 167;
+	p[38] = 165;
 	p[39] = 26;
 
 	p[40] = 0x10;	//ctrl
