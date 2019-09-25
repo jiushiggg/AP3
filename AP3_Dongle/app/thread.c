@@ -227,6 +227,10 @@ void *mainThread(void *arg0)
         TIM_Close(t);
     }
 #endif
+#ifdef FLASH_APP_TEST
+    test_flash();
+#endif
+
     Core_Mainloop();
 
     return 0;

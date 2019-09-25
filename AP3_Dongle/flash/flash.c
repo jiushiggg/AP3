@@ -277,36 +277,38 @@ UINT8 Flash_calibInfoInit(void)
     }
     return TRUE;
 }
+
 #ifdef FLASH_APP_TEST
-while(1){
-    #define TEST_LEN    2048
-    uint16_t i=0;
-    Flash_Malloc(50*4096);
-    Flash_Read(50*4096, coremem, TEST_LEN);
-    for (i=0; i<TEST_LEN; i++){
-        coremem[i] = i+1;
-    }
-    //Flash_Write(50*4096, coremem , TEST_LEN);
-    Flash_Write(50*4096, coremem, TEST_LEN);
+#include <string.h>
+#define TEST_LEN    4096
+uint8_t coremem[TEST_LEN] = {0};
+uint8_t coremem1[TEST_LEN] = {0};
+uint32_t j = 0;
+void test_flash(void)
+{
+	uint32_t address;
+	while(1){
+	    uint16_t i=0;
 
-    for (i=0; i<TEST_LEN; i++){
-        coremem[i] = 0;
-    }
-    Flash_Read(50*4096, coremem, TEST_LEN);
+	    //BSP_Delay1MS(15);
+	    for (i=0; i<TEST_LEN; i++){
+	        coremem[i] = j+1;
+	    }
+	    memset(coremem1, 0, TEST_LEN);
 
+	    //CMD_SE(index*FLASH_SECTOR_SIZE);
+	    address = (uint32_t)Flash_Malloc(TEST_LEN);
+	    Flash_Write(address, coremem , TEST_LEN);
+	    Flash_Read(address, coremem1, TEST_LEN);
 
-    Flash_Malloc(0);
-    Flash_Read(0, coremem, TEST_LEN);
-    for (i=0; i<TEST_LEN; i++){
-        coremem[i] = i+1;
-    }
-    //Flash_Write(50*4096, coremem , TEST_LEN);
-    CMD_PP(0, (UINT32)coremem, TEST_LEN);
-
-    for (i=0; i<TEST_LEN; i++){
-        coremem[i] = 0;
-    }
-    Flash_Read(0, coremem, TEST_LEN);
-
+	    if (0 != memcmp(coremem, coremem1, TEST_LEN)){
+	    	pinfo("error:%d, address:%x", j, address);
+	    }
+	    if (0 == j%100){
+	    	pinfo("flash test running:%d times, %x\r\n",j, address);
+	    }
+	    j++;
+	}
 }
+
 #endif

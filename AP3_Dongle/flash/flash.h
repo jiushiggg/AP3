@@ -10,7 +10,7 @@
 #define FLASH_INIT_ERR_CK	3
 
 #define MALLOC_FAIL			0xFFFFFFFF
-
+//#define FLASH_APP_TEST
 #define SECTOR_ERR			0x55
 #define SECTOR_OK			0xFF
 #define FLASH_USE_FLAG		0xAA
@@ -32,6 +32,7 @@ extern BOOL Flash_Read(UINT32 addr, UINT8* dst, UINT32 len);
 extern BOOL Flash_writeInfo(UINT8* src, UINT32 len);
 extern BOOL Flash_readInfo(UINT8* src, UINT32 len);
 extern UINT8 Flash_calibInfoInit(void);
+extern void test_flash(void);
 #endif
 
 
