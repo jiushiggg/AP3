@@ -53,7 +53,8 @@ st_protocolFnxTable xmodemFnx={
 .recvFnx        =   Xmodem_Recv,
 .getDataFnx     =   Xmodem_GetData,
 .sendFromFlashFnx = Xmodem_SendFromFlash,
-.recvToFlashFnx =   Xmodem_RecvToFlash
+.recvToFlashFnx =   Xmodem_RecvToFlash,
+.USCIStatusFnx	= 	UART_checkStatus
 };
 
 
@@ -110,6 +111,7 @@ static INT32 Xmodem_SendCmd(UINT8 cmd, UINT8 recv_ack_flag, INT32 timeout)
 		}else {
 		    read_len = 0;
 		}
+		memset(recv_once_buf, 0, sizeof(recv_once_buf));
 		recCmdAckFlg = false;
 
 		if(read_len != sizeof(recv_ack))
@@ -218,7 +220,7 @@ recv_tx_ack:
             tx_cmd = XMODEM_CMD_CAN;
             x->nak_times = 0;
             ret = -1;
-            GGGDEBUG(("RET:-1"));
+            X_DEBUG(("RET:-1"));
         }
     }
     else //ack
@@ -287,6 +289,7 @@ static INT32 Xmodem_SendOnce(sn_t *x, UINT8 *src, INT32 len, INT32 timeout)
         }else {
             recv_ack = XMODEM_CMD_NAK;
         }
+        memset(recv_once_buf, 0, sizeof(recv_once_buf));
         recCmdAckFlg = false;
 
 		X_DEBUG(("ack: 0x%02X.", recv_ack));
@@ -555,8 +558,9 @@ void readCallback(UART_Handle handle, void *rxBuf, size_t size)
         Event_communicateSet(EVENT_COMMUNICATE_RX_HANDLE);
     }else{
         memset(recv_once_buf, 0, sizeof(recv_once_buf));
+    	memset(&xcb, 0 , sizeof(xcb));
         size = 0;
     }
     xcb_recv_len_once = size;
-    UART_appRead(recv_once_buf, XMODEM_LEN_ALL);
+    UART_appRead(recv_once_buf, sizeof(recv_once_buf));
 }

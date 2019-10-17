@@ -143,7 +143,7 @@ static void bspSpiInit(uint32_t bitRate)
     SSIIntClear(BLS_SPI_BASE, SSI_RXOR | SSI_RXTO);
     SSIConfigSetExpClk(BLS_SPI_BASE,
                        BLS_CPU_FREQ, /* CPU rate */
-                       SSI_FRF_MOTO_MODE_3, /* frame format */
+                       SSI_FRF_MOTO_MODE_1, /* frame format */
                        SSI_MODE_MASTER, /* mode */
                        bitRate, /* bit rate */
                        8); /* data size */

@@ -86,6 +86,9 @@ int UART_send(const uint8_t *pui8Data, uint16_t ui16Size)
         //
         // Send the byte.
         //
+        if (pui8Data[iOffset]==0){
+            continue;
+        }
         HWREG(UART0_BASE + UART_O_DR) = pui8Data[iOffset];
     }
 

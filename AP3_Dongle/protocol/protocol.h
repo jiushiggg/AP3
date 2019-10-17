@@ -35,6 +35,7 @@ typedef int32_t (*PROT_recvFnx)(uint8_t* tmp_buf, uint16_t tmp_len);
 typedef uint8_t* (*PROT_getDataFnx)(uint32_t* len);
 typedef int32_t (*PROT_recvToFlashFnx)(sn_t *x, uint32_t addr, int32_t dst_len, int32_t timeout);
 typedef int32_t (*PROT_sendFromFlashFnx)(sn_t *x, uint32_t addr, int32_t len, int32_t timeout);
+typedef uint8_t (*PROT_USCIStatusFnx)(void);
 
 typedef struct st_protocolFnxTable{
     PROT_dataInitFnx       dataInitFnx;
@@ -43,6 +44,7 @@ typedef struct st_protocolFnxTable{
     PROT_getDataFnx        getDataFnx;
     PROT_sendFromFlashFnx  sendFromFlashFnx;
     PROT_recvToFlashFnx    recvToFlashFnx;
+    PROT_USCIStatusFnx 	   USCIStatusFnx;
 }st_protocolFnxTable;
 
 typedef struct st_protocolConfig{
@@ -55,13 +57,15 @@ typedef struct st_protocolConfig{
 #pragma pack()
 
 #if defined(PCIE)
-    #define TRANS_BUF_SIZE  XMODEM_LEN_ALL
+    #define TRANS_BUF_SIZE  UART_RECV_BUF
+    extern uint8_t spi_send_buf[0];
 #elif defined(AP_3)
     #define TRANS_BUF_SIZE  SPIPRIVATE_LEN_ALL
+    extern uint8_t spi_send_buf[TRANS_BUF_SIZE];
 #else
 #endif
 extern uint8_t recv_once_buf[TRANS_BUF_SIZE];
-extern uint8_t spi_send_buf[TRANS_BUF_SIZE];
+
 
 
 extern void protocol_dataInit(uint8_t* tmp_buf, uint16_t tmp_len);
@@ -72,6 +76,7 @@ extern int32_t protocol_sendFromFlash(sn_t *x, uint32_t addr, int32_t len, int32
 extern int32_t protocol_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
 extern uint8_t protocol_checkCrc(void *buf, em_protocol type);
 extern void protocol_peripheralInit(void);
+extern uint8_t USCI_status(void);
 
 
 #endif /* PROTOCOL_PROTOCOL_H_ */

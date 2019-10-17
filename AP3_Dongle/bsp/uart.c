@@ -22,7 +22,7 @@ extern void readCallback(UART_Handle handle, void *rxBuf, size_t size);
 
 void UART_appInit(void)
 {
-#ifdef PCIE
+
     UART_Params uartParams;
     /* Call driver init functions */
 
@@ -47,8 +47,8 @@ void UART_appInit(void)
     UART_control(uart_handle, UARTCC26XX_CMD_RETURN_PARTIAL_ENABLE, NULL);
     /* Loop forever echoing */
 
-    UART_read(uart_handle, recv_once_buf, XMODEM_LEN_ALL);
-#endif
+    UART_read(uart_handle, recv_once_buf, sizeof(recv_once_buf));
+
 }
 
 
@@ -61,6 +61,11 @@ int32_t UART_appRead(void *buffer, size_t size)
 int32_t UART_appWrite(void *buffer, size_t size)
 {
     return UART_write(uart_handle, buffer, size);
+}
+
+uint8_t UART_checkStatus(void)
+{
+	return 1;
 }
 
 #ifdef UART_TEST

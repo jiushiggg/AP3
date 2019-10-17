@@ -8,7 +8,7 @@
 //#include <ti/drivers/spi/SPICC26XXDMA.h>
 
 #include "Board.h"
-#include "sys_cfg.h"
+//#include "sys_cfg.h"
 #include "appSPI.h"
 #include "SPI_private.h"
 
@@ -42,35 +42,50 @@ void SPI_appInit(uint8_t* rxbuf, uint8_t* txbuf)
     SPI_transfer(handle, &transaction);
 }
 
+uint8_t SPI_checkStatus(void)
+{
+	return transaction.status==SPI_TRANSFER_STARTED;
+}
+
 bool SPI_appSend(void *buffer, uint16_t size)
 {
 	bool ret = false;
-	if (transaction.status!=SPI_TRANSFER_STARTED){
-		GPIO_write(Board_SPI_SLAVE_READY, 1);
-	//    transaction.txBuf = buffer;
-		transaction.count = size;
-		ret = SPI_transfer(handle, &transaction);
-		if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
-			SPI_transferCancel(handle);
-			ret = SPI_transfer(handle, &transaction);
-		}
-		GPIO_write(Board_SPI_SLAVE_READY, 0);
+	if (SPI_checkStatus()){
+		return ret;
 	}
+
+	GPIO_write(Board_SPI_SLAVE_READY, 1);
+//    transaction.txBuf = buffer;
+	transaction.count = size;
+	ret = SPI_transfer(handle, &transaction);
+	if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
+		pinfo("Pre-setS:%d\r\n",transaction.status);
+		SPI_transferCancel(handle);
+		ret = SPI_transfer(handle, &transaction);
+		pinfo("resetS:%d\r\n",transaction.status);
+	}
+	GPIO_write(Board_SPI_SLAVE_READY, 0);
+
     return ret;
 }
 
 bool SPI_appRecv(void *buffer, uint16_t size)
 {
 	bool ret = false;
-	if (transaction.status!=SPI_TRANSFER_STARTED){
-		GPIO_write(Board_SPI_SLAVE_READY, 1);
-	//    transaction.rxBuf = buffer;
-		transaction.count = size;
+
+	if (SPI_checkStatus()){
+		return ret;
+	}
+
+	GPIO_write(Board_SPI_SLAVE_READY, 1);
+//    transaction.rxBuf = buffer;
+	transaction.count = size;
+	ret = SPI_transfer(handle, &transaction);
+	if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
+		pinfo("Pre-setR:%d\r\n",transaction.status);
+		SPI_transferCancel(handle);
 		ret = SPI_transfer(handle, &transaction);
-		if (false==ret && SPI_TRANSFER_STARTED!=transaction.status){
-			SPI_transferCancel(handle);
-			ret = SPI_transfer(handle, &transaction);
-		}
+		pinfo("resetR:%d\r\n",transaction.status);
 	}
     return ret;
 }
