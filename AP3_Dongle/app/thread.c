@@ -128,12 +128,13 @@ void *mainThread(void *arg0)
     if(Flash_Init() == 1)
     {
     	local_task.ack_buf.buf[0] = 0;
-        pinfo("flash init successfully.\r\n");
+        pinfo("flash init successfully\r\n");
     }
     else
     {
     	local_task.ack_buf.buf[0] = 1;
-    	pinfo("flash init fail.\r\n");
+    	pinfo("flash init fail\r\n");
+    	while(1);
     }
 
     protocol_peripheralInit();

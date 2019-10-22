@@ -114,38 +114,29 @@ void Flash_SoftReset(void)
 UINT8 Flash_Init(void)
 {
 	UINT8 ret = 0;
-	int id = 0;
+	uint16_t id = 0;
 	
 	init_nvs_spi_flash();
 	//读取
 	id = CMD_RDID();
+	log_print("Flash ID =%x\r\n", id);
 	if ((id!=FlashID) && (id!=FlashID_GD)&& (id!=FlashID_WB)&& (id!=FlashID_PUYA))
 	{
-#ifdef	FLASH_DBG
-	    log_print("FI RDID FAIL.\r\n");
-#endif
 		return FLASH_INIT_ERR_IO;
 	}
 
 	ret = Flash_Check();
 	if (ret == FLASH_CHECK_ERR)
 	{
-#ifdef	FLASH_DBG
-	    log_print("FI FC FAIL.\r\n");
-#endif
+	    log_print("Flash Check failed.\r\n");
 		return FLASH_INIT_ERR_CK;
 	}
 	else if (ret == FLASH_CHECK_NEW)
 	{
-#ifdef	FLASH_DBG
-	    log_print("FI FC NEW.\r\n");
-#endif
+	    log_print("new Flash.\r\n");
 	}
 	//系统重启后，设置当前sector位置
 	_sector = DATA_SECTER_START;
-#ifdef	FLASH_DBG
-	log_print("FI OK.\r\n");
-#endif
 
     Flash_calibInfoInit();
     config_power();
