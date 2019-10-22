@@ -426,7 +426,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
     uint8_t *rx_ptr = transaction.rxBuf;
     uint8_t ret_checkdata;
     int32_t total_len = 0;
-    uint8_t tmp_len = 0;
+    uint16_t tmp_len = 0;
     int8_t ret_bitmap = 0;
     uint16_t cmd;
     privateState = ST_SPI_RECV_INIT;

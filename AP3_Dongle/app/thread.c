@@ -133,7 +133,7 @@ void *mainThread(void *arg0)
     else
     {
     	local_task.ack_buf.buf[0] = 1;
-        perr("flash init fail.\r\n");
+    	pinfo("flash init fail.\r\n");
     }
 
     protocol_peripheralInit();
