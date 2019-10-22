@@ -241,6 +241,8 @@ static void SPIPrivate_end(uint8_t* buf_ptr, st_SPI_private * tmp)
 {
 
     SPIP_DEBUG(("ST_SPI_END\r\n"));
+
+    memset(buf_ptr, 0, SPIPRIVATE_LEN_ALL);
     tmp->head.sn = 0;
     tmp->head.len = SPI_LAST_PCK;
     packetData(buf_ptr, 0, tmp, CALCU_CRC);
@@ -392,7 +394,6 @@ static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
     memcpy((uint8_t*)pckst, (uint8_t*)src, sizeof(st_SPI_privateHead));					//copy head
     tmp_len = pckst->head.len&SPI_LEN_MASK;
 
-    tmp_len = pckst->head.len&SPI_LEN_MASK;
     if (tmp_len > SPIPRIVATE_LEN_DAT){
     	SPIP_DEBUG(("ERR tmp len=%d\r\n", tmp_len));
     	return 1;
@@ -404,7 +405,7 @@ static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
 
     SPIP_DEBUG(("sn:%d, len:%x,crc:%x\r\n", pckst->head.sn, pckst->head.len, pckst->crc));
 
-    if (0==pckst->crc && 0==pckst->head.len){
+    if (SPI_LAST_PCK==pckst->head.len){			//error data, because data length is 0.
     	return 2;
     }
 
@@ -436,6 +437,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             case ST_SPI_RECV_INIT:
                 GPIO_write(Board_SPI_SLAVE_READY, 1);
                 memset(SPI_pkg_bitmap, 0xff, sizeof(SPI_pkg_bitmap));
+                SPIP_DEBUG(("->ST_SPI_RECV_INIT:len=%d, timeout=%d\r\n", len, timeout));
                 privateState = ST_SPI_RECV_PACKET;
                 break;
             case ST_SPI_SET_RECV:
@@ -443,9 +445,9 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             	SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
             	//no break;
             case ST_SPI_RECV_PACKET:
-                SPIP_DEBUG(("->ST_SPI_RECV_PACKET\r\n"));
+                SPIP_DEBUG(("->ST_SPI_RECV_PACKET %dms\r\n", timeout/100));
                 if (false == packetRecv(x, timeout)){
-                	SPIP_DEBUG(("ERR recv Timeout=%d\r\n", timeout));
+                	SPIP_DEBUG(("ERR recv Timeout\r\n"));
                 	privateState = x->send_retry_times<3 ? ST_SPI_RECV_PACKET : ST_SPI_ERR;
                 	break;
                 }
@@ -594,7 +596,7 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
     int32_t ret_len = 0;
     SPIP_DEBUG(("-------------SPIPrivate_recv---\r\n"));
     memset((uint8_t*)&spi_sn, 0, sizeof(sn_t));
-    ret_len = SPI_recv(&spi_sn, (uint32_t)read_buf, len, EVENT_WAIT_US(10000000), NULL);
+    ret_len = SPI_recv(&spi_sn, (uint32_t)read_buf, len, EVENT_WAIT_US(500000), NULL);
     SPIP_DEBUG(("---SPIPrivate_recv exit---%d\r\n", ret_len));
     return ret_len;
 }
