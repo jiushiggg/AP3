@@ -37,6 +37,7 @@
 #include "cc2640r2_rf.h"
 #include "event.h"
 #include "protocol.h"
+#include "watchdog.h"
 #include "appSPI.h"
 
 #pragma location=(CORE_TASK_ADDR)
@@ -88,10 +89,13 @@ UINT32 Core_GetQuitStatus()
 {
 	return core_idel_flag;
 }
-
+extern bool SPI_appRecv(void *buffer, uint16_t size);
 void Core_ResetQuitStatus()
 {
 	core_idel_flag = 0;
+#if defined(AP_3)
+	SPI_appRecv(NULL, SPIPRIVATE_LEN_ALL);
+#endif
 }
 
 void Core_Init(void)
@@ -221,7 +225,15 @@ void Core_Mainloop(void)
     volatile uint32_t event = 0;
     while (1) {
         event = Event_PendCore();
+		if (USCI_status()){
+			watchdog_clear();
+			pinfo("feedWD");
+		}
 
+		if (0 == event)
+		{
+			continue;
+		}
         if (RF_Status_carrierWave == rf_status){
             RF_carrierWave(false);
         }else {
@@ -354,46 +366,6 @@ void Core_Mainloop(void)
             pinfo("core exit handle rc req\r\n");
             Event_Clear(EVENT_RC_REQ);
         }
-
-//        if(event & EVENT_FW_UPDATA)
-//        {
-//            UINT8 flag = 0;
-//
-//            pinfo("core updata firmware.\r\n");
-//            if(Core_CheckBinData(local_task.flash_data_addr) == 1)
-//            {
-//                if(Core_SetBootData(local_task.flash_data_addr) == 1)
-//                {
-//                    flag = 1;
-//                }
-//                else
-//                {
-//                    perr("core set boot.\r\n");
-//                }
-//            }
-//            else
-//            {
-//                perr("core check bin.\r\n");
-//            }
-//
-//            if(flag == 1)
-//            {
-//                if(Core_SendAck(CORE_CMD_ACK, 0, NULL) == 1)
-//                {
-//                    Core_HandleSoftReboot();
-//                }
-//            }
-//            else
-//            {
-//                Core_SendAck(0x10FF, 0, NULL);
-//            }
-//            Event_Clear(EVENT_FW_UPDATA);
-//        }
-//        if(event & EVENT_TX_ESL_ACK)
-//        {
-//            pinfo("core tx esl ack.\r\n");
-//            Event_Clear(EVENT_TX_ESL_ACK);
-//        }
         if (event & EVENT_CALIBRATE_FREQ)
         {
             uint16_t ack;
@@ -456,63 +428,6 @@ void Core_Mainloop(void)
             }
             Event_Clear(EVENT_SCAN_BG);
         }
-#if defined(ASSAP)
-        if(event & EVENT_ASS_ACK)
-        {
-            assap_ack_table_t *p_assap_ack_table = Core_Malloc(sizeof(assap_ack_table_t));
-            INT32 ret = 0;
-
-            if(p_assap_ack_table == NULL)
-            {
-                Core_SendAck(0x10F4, 0, NULL);
-            }
-            else
-            {
-                if(assap_ack_parse_cmd(local_task.cmd_buf.buf, local_task.cmd_len, p_assap_ack_table) < 0)
-                {
-                    Core_SendAck(0x10FF, 0, NULL);
-                }
-                else
-                {
-                    ret = assap_ack(p_assap_ack_table);
-                    if(ret < 0)
-                    {
-                        pinfo("assap_ack break\r\n");
-                    }
-                    else
-                    {
-                        Core_SendData(p_assap_ack_table->data_buf, p_assap_ack_table->data_len);
-                    }
-                }
-            }
-            Event_Clear(EVENT_ASS_ACK);
-        }
-
-        if(event & EVENT_SCAN_WKUP)
-        {
-            INT32 ds = assap_scanwkup_ret_size();
-            UINT8 *dst = Core_Malloc(ds);
-            INT32 len = 0;
-
-            if(assap_scanwkup_parse_cmd(local_task.cmd_buf.buf, local_task.cmd_len) < 0)
-            {
-                Core_SendAck(0x10FF, 0, NULL);
-            }
-            else
-            {
-                if(ds == NULL)
-                {
-                    Core_SendAck(0x10F4, 0, NULL);
-                }
-                else
-                {
-                    len = assap_scan_wkup(dst, ds);
-                    Core_SendData(dst, len);
-                }
-            }
-            Event_Clear(EVENT_SCAN_WKUP);
-        }
-#endif
         if(event & EVENT_RF_TXRX)
         {
             pinfo("Core rf test\r\n");
@@ -527,6 +442,9 @@ void Core_Mainloop(void)
             Core_ResetQuitStatus();
         }
 
-        SPI_appRecv(NULL, SPIPRIVATE_LEN_ALL);
-    }
+		if (USCI_status()){
+			watchdog_clear();
+		}
+
+	}
 }

@@ -36,13 +36,14 @@
 #include "bsp_spi.h"
 #include "timer.h"
 #include "rftest.h"
+#include "watchdog.h"
 
 
 #pragma location =(0x60)
 #ifdef GOLD_BOARD
 const unsigned char APP_VERSION_STRING[] = "rfd-6.0.0"; //must < 32
 #else
-const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.6rc5"; //must < 32
+const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7"; //must < 32
 #endif
 
 
@@ -111,6 +112,7 @@ void *mainThread(void *arg0)
     Board_initSPI();
     Board_initUART();
     Board_initGPIO();
+    watchdog_init();
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
     debug_peripheral_init();

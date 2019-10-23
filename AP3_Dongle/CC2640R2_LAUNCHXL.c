@@ -773,13 +773,14 @@ const UDMACC26XX_Config UDMACC26XX_config[CC2640R2_LAUNCHXL_UDMACOUNT] = {
  */
 #include <ti/drivers/Watchdog.h>
 #include <ti/drivers/watchdog/WatchdogCC26XX.h>
+#include "watchdog.h"
 
 WatchdogCC26XX_Object watchdogCC26XXObjects[CC2640R2_LAUNCHXL_WATCHDOGCOUNT];
 
 const WatchdogCC26XX_HWAttrs watchdogCC26XXHWAttrs[CC2640R2_LAUNCHXL_WATCHDOGCOUNT] = {
     {
         .baseAddr    = WDT_BASE,
-        .reloadValue = 1000 /* Reload value in milliseconds */
+        .reloadValue = LOAD_TIME_S(WD_RESET_TIME_S) /* Reload value in milliseconds */
     },
 };
 

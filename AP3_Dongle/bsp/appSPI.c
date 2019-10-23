@@ -11,6 +11,7 @@
 //#include "sys_cfg.h"
 #include "appSPI.h"
 #include "SPI_private.h"
+#include "debug.h"
 
 
 #define SPI_RATE    4000000

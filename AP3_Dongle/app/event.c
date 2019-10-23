@@ -4,7 +4,9 @@
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/knl/Swi.h>
 #include "event.h"
+#include "watchdog.h"
 
+#define EVENT_PEND_TIME ((WD_RESET_TIME_S/4+1)*1000000/Clock_tickPeriod)
 
 Event_Handle protocol_eventHandle;
 Event_Struct protocol_eventStruct;
@@ -55,29 +57,16 @@ UINT32 Event_Get(void)
     return Event_getPostedEvents(protocol_eventHandle);
 }
 
-#if defined(TASK1)
-UINT32 Event_communicateGet(void)
-{
-    return Event_getPostedEvents(communicateEventHandle);
-}
-#endif
 
 void Event_Set(UINT32 event)
 {
     Event_post(protocol_eventHandle, event);
 }
 
-#if defined(TASK1)
-void Event_communicateSet(UINT32 event)
-{
-    Event_post(communicateEventHandle, event);
-}
-#else
 void Event_communicateSet(UINT32 event)
 {
     Event_post(protocol_eventHandle, event);
 }
-#endif
 
 void Event_Clear(UINT32 event)
 {
@@ -93,30 +82,18 @@ UINT32 Event_GetStatus(void)
     return Event_getPostedEvents(protocol_eventHandle);
 }
 
-#if defined(TASK1)
-UINT32 Event_communicateGetStatus(void)
-{
-    return Event_getPostedEvents(communicateEventHandle);
-}
-#else
 UINT32 Event_communicateGetStatus(void)
 {
     return Event_getPostedEvents(protocol_eventHandle);
 }
-#endif
 
 UINT32 Event_PendCore(void)
 {
-    return Event_pend(protocol_eventHandle, 0, EVENT_ALL, BIOS_WAIT_FOREVER);
+    return Event_pend(protocol_eventHandle, 0, EVENT_ALL, EVENT_PEND_TIME);
 
 }
 
-#if defined(TASK1)
-UINT32 Event_Pendcommunicate(void)
-{
-    return Event_pend(communicateEventHandle, 0, EVENT_ALL, BIOS_WAIT_FOREVER);
-}
-#endif
+
 
 uint32_t taskDisable(void)
 {
