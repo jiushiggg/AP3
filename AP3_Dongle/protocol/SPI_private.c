@@ -529,7 +529,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
 				privateState = x->last_recv_cmd==true ? ST_SPI_END : ST_SPI_PACK_DATA;
             	break;
             case ST_SPI_ERR_HANDLE:
-                SPIP_DEBUG_REC(("->ST_SPI_ERR_HANDLE\r\n"));
+            	SPIP_DEBUG_ERR(("->ST_SPI_ERR_HANDLE:%d\r\n", x->nak_times));
                 if (++x->nak_times > 3){
                     x->nak_times = 0;
                     privateState = ST_SPI_ERR;
