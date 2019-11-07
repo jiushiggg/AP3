@@ -29,7 +29,7 @@
 #include "CC2592.h"
 
 #define SPI_DATA		(uint16_t)(0X0000)
-#define SPI_CRC_ERR     (uint16_t)(0X2000)
+#define SPI_DATA_ERR     (uint16_t)(0X2000)
 #define SPI_QUERY       (uint16_t)(0X4000)
 #define SPI_ABORT		(uint16_t)(0X6000)
 #define SPI_LAST_PCK    (uint16_t)(0X1000)
@@ -42,6 +42,11 @@
 
 #define SPI_NO_USE      NULL
 
+#define DATA_RIGHT			0
+#define DATA_LEN_OVERFLOW 	1
+#define DATA_LEN_ERR		2
+#define DATA_CRC_ERR		3
+#define DATA_NOT_STORE		4
 
 void SPIPrivate_dataInit(uint8_t* tmp_buf, uint16_t tmp_len);
 int32_t SPIPrivate_send(sn_t *x, uint8_t *src, int32_t len, int32_t timeout);
@@ -334,7 +339,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 if (x->last_recv_cmd == SPI_QUERY_CMD){
                     x->last_recv_cmd = SPI_NONE_CMD;
 
-                    if ((tmp.head.len&SPI_CRC_ERR) == SPI_CRC_ERR){
+                    if ((tmp.head.len&SPI_DATA_ERR) == SPI_DATA_ERR){
                         privateState = ++x->nak_times > 3 ? ST_SPI_ERR : ST_SPI_WRITE_SEND_BUF;
                         SPIP_DEBUG(("dataCRCErr\r\n"));
                     }else if (calu_crc==tmp.crc && tmp.head.sn==x->send_sn){
@@ -389,12 +394,13 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
 static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
 {
     int16_t tmp_len = 0;
+    uint16_t crc = 0;
     memcpy((uint8_t*)pckst, (uint8_t*)src, sizeof(st_SPI_privateHead));					//copy head
     tmp_len = pckst->head.len&SPI_LEN_MASK;
 
     if (tmp_len > SPIPRIVATE_LEN_DAT){
     	SPIP_DEBUG_ERR(("ERR tmp len=%d\r\n", tmp_len));
-    	return 1;
+    	return DATA_LEN_OVERFLOW;
     }
 
     pckst->buf = ((uint8_t*)src + sizeof(st_SPI_privateHead));							//copy pointer
@@ -404,18 +410,20 @@ static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
     SPIP_DEBUG_REC(("sn:%d, len:%x,crc:%x\r\n", pckst->head.sn, pckst->head.len, pckst->crc));
 
     if (SPI_LAST_PCK==pckst->head.len){			//error data, because data length is 0.
-    	return 2;
+    	SPIP_DEBUG_ERR(("ERR len is 0\r\n"));
+    	return DATA_LEN_ERR;
     }
 
-    //Debug_SetLevel(DEBUG_LEVEL_DEBUG);												//deubg
+    Debug_SetLevel(DEBUG_LEVEL_DEBUG);												//deubg
     pdebughex((uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len+sizeof(pckst->crc));
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
-    if (pckst->crc != CRC16_CaculateStepByStep(0, (uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len)){
-    	SPIP_DEBUG_ERR(("ERR crc, len=%d\r\n", tmp_len));
-    	return 3;
+    crc = CRC16_CaculateStepByStep(0, (uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len);
+    if (pckst->crc != crc){
+    	SPIP_DEBUG_ERR(("ERR crc:%x, %x\r\n", pckst->crc, crc));
+    	return DATA_CRC_ERR;
     }
-    return 0;
+    return DATA_RIGHT;
 }
 
 static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BOOL (*fnx)(uint32_t addr1, uint8_t* src1, uint32_t len1))
@@ -436,6 +444,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             case ST_SPI_RECV_INIT:
                 GPIO_write(Board_SPI_SLAVE_READY, 1);
                 memset(SPI_pkg_bitmap, 0xff, sizeof(SPI_pkg_bitmap));
+                memset(x, 0, sizeof(sn_t));
                 SPIP_DEBUG_REC(("->ST_SPI_RECV_INIT:len=%d, timeout=%d\r\n", len, timeout));
                 privateState = ST_SPI_RECV_PACKET;
                 break;
@@ -472,6 +481,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
 
                 if (tmp.head.sn != x->send_sn){
                 	SPIP_DEBUG_ERR(("ERR packet sn=%d, sn=%d\r\n", tmp.head.sn, x->send_sn));
+                	x->send_sn = tmp.head.sn;
                 	privateState = ST_SPI_ERR_HANDLE;
                 	break;
                 }
@@ -517,13 +527,15 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             	break;
             case ST_SPI_QUERY_HANDLE:
                 SPIP_DEBUG_REC(("->ST_SPI_QUERY_HANDLE\r\n"));
-                x->nak_times = 0;
-                if (BITMAP_CLEARED == check_bitmap(tmp.head.sn)){
-                	SPIP_DEBUG_REC(("sn add one\r\n"));
-                	x->send_sn = tmp.head.sn+1;
-                }else{
+                if (BITMAP_CLEARED != check_bitmap(tmp.head.sn)){
                 	SPIP_DEBUG_ERR(("WARN data not stored\r\n"));
+                	privateState = ST_SPI_ERR_HANDLE;
+                	ret_checkdata = DATA_NOT_STORE;
+                	break;
                 }
+            	SPIP_DEBUG_REC(("sn add one\r\n"));
+            	x->send_sn = tmp.head.sn+1;
+                x->nak_times = 0;
 				tmp_buff_adr = 0;
 				tmp.head.len = SPI_LAST_PCK;
 				privateState = x->last_recv_cmd==true ? ST_SPI_END : ST_SPI_PACK_DATA;
@@ -533,10 +545,11 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 if (++x->nak_times > 3){
                     x->nak_times = 0;
                     privateState = ST_SPI_ERR;
+                    break;
                 }
                 tmp.head.sn = x->send_sn;
                 tmp.head.len = SPI_LAST_PCK;
-                tmp.head.len |= (ret_checkdata!=0 ? SPI_CRC_ERR : SPI_DATA);
+                tmp.head.len |= (ret_checkdata!=DATA_RIGHT ? SPI_DATA_ERR : SPI_DATA);
                 tmp_buff_adr = 0;
                 privateState = ST_SPI_PACK_DATA;
             	break;
