@@ -68,5 +68,10 @@
 #define SET_CCFG_MODE_CONF_XOSC_CAPARRAY_DELTA       (-1)       // Signed 8-bit value, directly modifying trimmed XOSC cap-array value
 #define SET_CCFG_SIZE_AND_DIS_FLAGS_DIS_GPRAM        0x0        // Cache is disabled and GPRAM is available at 0x11000000-0x11001FFF
 
+#define ENABLE_JATG
+#ifdef ENABLE_JATG
+#define SET_CCFG_CCFG_TAP_DAP_0_CPU_DAP_ENABLE 0x00		//disable JATG
+#endif
+
 #include <ti/devices/DeviceFamily.h>
 #include DeviceFamily_constructPath(startup_files/ccfg.c)
