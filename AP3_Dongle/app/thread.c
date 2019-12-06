@@ -43,7 +43,7 @@
 #ifdef GOLD_BOARD
 const unsigned char APP_VERSION_STRING[] = "rfd-6.0.0"; //must < 32
 #else
-const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc2"; //must < 32
+const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc3"; //must < 32
 #endif
 
 
@@ -244,3 +244,8 @@ void *communicate2master(void *arg0)
     return 0;
 }
 #endif
+#include <ti/devices/cc26x0r2/driverlib/sys_ctrl.h>
+void exceptionHandler(void)
+{
+	SysCtrlSystemReset();
+}
