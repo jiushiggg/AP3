@@ -244,13 +244,13 @@ static void SPIPrivate_end(uint8_t* buf_ptr, st_SPI_private * tmp)
 {
 
     SPIP_DEBUG(("ST_SPI_END\r\n"));
-
+    SPI_preSend();
     memset(buf_ptr, 0, SPIPRIVATE_LEN_ALL);
     tmp->head.sn = 0;
     tmp->head.len = SPI_LAST_PCK;
     packetData(buf_ptr, 0, tmp, CALCU_CRC);
     memset((uint8_t*)&spi_sn, 0, sizeof(spi_sn));
-    SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+    SPI_appSend(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
 }
 
 static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOOL (*fnx)(uint32_t addr1, uint8_t* dst, uint32_t len1))
@@ -308,6 +308,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 break;
             case ST_SPI_WRITE_SEND_BUF:
                 SPIP_DEBUG(("--->ST_SPI_WRITE_SEND_BUF\r\n"));
+                SPI_preSend();
                 if (NULL == fnx){
                     packetData(tx_ptr, tmp_addr, &tmp, UN_CALCU_CRC);
                 }else {
@@ -330,11 +331,16 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
             case ST_SPI_RECV_DATA:
                 SPIP_DEBUG(("--->ST_SPI_RECV_DATA------cmd:%d\r\n", x->last_recv_cmd));
                 if (false == packetRecv(x, timeout)){
-                	privateState = x->send_retry_times<3 ? ST_SPI_SEND_DATA : ST_SPI_ERR;
+                	privateState = x->send_retry_times<3 ? ST_SPI_WRITE_SEND_BUF : ST_SPI_ERR;
                 	break;
                 }
                 calu_crc = unpackData((uint32_t)rx_ptr, &tmp);
                 SPIP_DEBUG(("calu_crc:%x, send_sn:%d\r\n", calu_crc, x->send_sn));
+
+                if (calu_crc==tmp.crc && *(uint16_t*)tmp.buf==CORE_CMD_BACK_TO_IDLE){
+                	privateState = ST_SPI_PACKET_CHECK_DATA;
+                	break;
+                }
 
                 if (x->last_recv_cmd == SPI_QUERY_CMD){
                     x->last_recv_cmd = SPI_NONE_CMD;
@@ -365,7 +371,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
             case ST_SPI_PACKET_CHECK_DATA:
                 SPIP_DEBUG(("--->ST_SPI_PACKET_CHECK_DATA\r\n"));
                 x->last_recv_cmd = SPI_QUERY_CMD;
-
+                SPI_preSend();
                 send_check.head.sn = x->send_sn;
                 send_check.head.len = SPI_QUERY;
                 packetData(tx_ptr, 0, &send_check, CALCU_CRC);
@@ -415,7 +421,7 @@ static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
     }
 
     Debug_SetLevel(DEBUG_LEVEL_DEBUG);												//deubg
-    pdebughex((uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len+sizeof(pckst->crc));
+    pdebughex((uint8_t*)src, sizeof(st_SPI_privateHead));
     Debug_SetLevel(DEBUG_LEVEL_INFO);
 
     crc = CRC16_CaculateStepByStep(0, (uint8_t*)src, sizeof(st_SPI_privateHead)+tmp_len);
@@ -448,10 +454,6 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 SPIP_DEBUG_REC(("->ST_SPI_RECV_INIT:len=%d, timeout=%d\r\n", len, timeout));
                 privateState = ST_SPI_RECV_PACKET;
                 break;
-            case ST_SPI_SET_RECV:
-            	SPIP_DEBUG_REC(("->ST_SPI_SET_RECV\r\n"));
-            	SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
-            	//no break;
             case ST_SPI_RECV_PACKET:
                 SPIP_DEBUG_REC(("->ST_SPI_RECV_PACKET %dms\r\n", timeout/100));
                 if (false == packetRecv(x, timeout)){
@@ -473,12 +475,12 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 	break;
                 }
 
-                cmd = tmp.head.len&SPI_CMD_MASK;
-                if (SPI_ABORT == cmd){
-                	//privateState = ST_SPI_ABORT_HANDLE;				//Temporary does not support
-                	//break;
+                if (*(uint16_t*)tmp.buf == CORE_CMD_BACK_TO_IDLE){		//termination command
+                	privateState = ST_SPI_END;
+                	break;
                 }
 
+                cmd = tmp.head.len&SPI_CMD_MASK;
                 if (tmp.head.sn != x->send_sn){
                 	SPIP_DEBUG_ERR(("ERR packet sn=%d, sn=%d\r\n", tmp.head.sn, x->send_sn));
                 	x->send_sn = tmp.head.sn;
@@ -555,6 +557,7 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             	break;
             case ST_SPI_PACK_DATA:
             	SPIP_DEBUG_REC(("->ST_SPI_PACK_DATA\r\n"));
+            	SPI_preSend();
             	packetData(tx_ptr, tmp_buff_adr, &tmp, CALCU_CRC);
             	privateState = ST_SPI_SEND_DATA;
             	break;
@@ -638,6 +641,8 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 			core_idel_flag = 1;
 	        if (privateState==ST_SPI_EXIT){
 	            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+	        }else{
+	        	Device_Recv_post();
 	        }
 			SPIP_DEBUG(("1:\r\n"));
 		}else if (privateState<ST_SPI_EXIT){

@@ -48,14 +48,17 @@ uint8_t SPI_checkStatus(void)
 	return transaction.status==SPI_TRANSFER_STARTED;
 }
 
+void SPI_preSend(void)
+{
+	GPIO_write(Board_SPI_SLAVE_READY, 1);
+}
+
 bool SPI_appSend(void *buffer, uint16_t size)
 {
 	bool ret = false;
 	if (SPI_checkStatus()){
 		return ret;
 	}
-
-	GPIO_write(Board_SPI_SLAVE_READY, 1);
 //    transaction.txBuf = buffer;
 	transaction.count = size;
 	ret = SPI_transfer(handle, &transaction);
