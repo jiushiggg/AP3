@@ -640,11 +640,13 @@ void transferCallback(SPI_Handle handle, SPI_Transaction *trans)
 		if (ptr->cmd==CORE_CMD_BACK_TO_IDLE && ptr->len==0 && ptr->head.len==0x1006 && ptr->head.sn==0){	 //没有计算CRC，简单的判断长度。6=data_cmd+data_len，0x1000表示最后一包
 			core_idel_flag = 1;
 	        if (privateState==ST_SPI_EXIT){
-	            SPI_appRecv(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+				SPI_preSend();
+	        	SPI_appSend(SPI_NO_USE, SPIPRIVATE_LEN_ALL);
+	            SPIP_DEBUG(("1:%d\r\n", privateState));
 	        }else{
 	        	Device_Recv_post();
+	        	SPIP_DEBUG(("3:%d\r\n", privateState));
 	        }
-			SPIP_DEBUG(("1:\r\n"));
 		}else if (privateState<ST_SPI_EXIT){
 			Device_Recv_post();
 			SPIP_DEBUG(("2:%d\r\n", privateState));
