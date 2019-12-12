@@ -244,8 +244,17 @@ void *communicate2master(void *arg0)
     return 0;
 }
 #endif
+
+
 #include <ti/devices/cc26x0r2/driverlib/sys_ctrl.h>
 void exceptionHandler(void)
 {
+#if defined(ENABLE_EXCEPTION)
 	SysCtrlSystemReset();
+#else
+	while(1);
+#endif
 }
+
+
+

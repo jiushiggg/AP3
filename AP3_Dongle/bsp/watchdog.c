@@ -28,6 +28,7 @@ void watchdogCallback(uintptr_t unused)
 
 void watchdog_init(void)
 {
+#if defined(ENABLE_EXCEPTION)
     Watchdog_Params params;
 
     Watchdog_init();
@@ -41,9 +42,12 @@ void watchdog_init(void)
         /* Error opening Watchdog */
         while (1);
     }
+#endif
 }
 
 void watchdog_clear(void)
 {
+#if defined(ENABLE_EXCEPTION)
 	Watchdog_clear(watchdogHandle);
+#endif
 }
