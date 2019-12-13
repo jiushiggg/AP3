@@ -73,21 +73,21 @@ typedef enum{
 
 typedef enum{
 	ST_SPI_RECV_INIT = (uint8_t)0,
-	ST_SPI_SEND_INIT,
+	ST_SPI_SEND_INIT,					//1
     ST_SPI_PACKET_TRANS_DATA,
     ST_SPI_WRITE_SEND_BUF,
     ST_SPI_SEND_DATA,
-    ST_SPI_PACKET_CHECK_DATA,
+    ST_SPI_PACKET_CHECK_DATA,			//5
 	ST_SPI_SET_RECV,
 	ST_SPI_UNPACKED,
 	ST_SPI_PACK_DATA,
 	ST_SPI_RECV_PACKET,
-	ST_SPI_DATA_HANDLE,
+	ST_SPI_DATA_HANDLE,					//10
 	ST_SPI_QUERY_HANDLE,
 	ST_SPI_ABORT_HANDLE,
 	ST_SPI_ERR_HANDLE,
     ST_SPI_RECV_DATA,
-    ST_SPI_END,
+    ST_SPI_END,							//15
 	ST_SPI_ERR,
 	ST_SPI_EXIT,
 }emPrivateState;
@@ -338,7 +338,7 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 SPIP_DEBUG(("calu_crc:%x, send_sn:%d\r\n", calu_crc, x->send_sn));
 
                 if (calu_crc==tmp.crc && *(uint16_t*)tmp.buf==CORE_CMD_BACK_TO_IDLE){
-                	privateState = ST_SPI_PACKET_CHECK_DATA;
+                	privateState = ST_SPI_WRITE_SEND_BUF;			//send data again
                 	break;
                 }
 
@@ -416,7 +416,7 @@ static uint8_t checkData(st_SPI_private* pckst, uint32_t src)
     SPIP_DEBUG_REC(("sn:%d, len:%x,crc:%x\r\n", pckst->head.sn, pckst->head.len, pckst->crc));
 
     if (SPI_LAST_PCK==pckst->head.len){			//error data, because data length is 0.
-    	SPIP_DEBUG_ERR(("ERR len is 0\r\n"));
+    	SPIP_DEBUG_ERR(("ERR len is %d\r\n", pckst->head.len));
     	return DATA_LEN_ERR;
     }
 
@@ -499,11 +499,11 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
             case ST_SPI_DATA_HANDLE:
                 SPIP_DEBUG_REC(("->ST_SPI_DATA_HANDLE\r\n"));
                 ret_bitmap = BITMAP_UNCLEAR;
-            	x->nak_times = 0;
             	x->last_recv_cmd = tmp.head.len&SPI_LAST_PCK ? true : false;
 
             	ret_bitmap = check_bitmap(tmp.head.sn);
             	if (BITMAP_UNCLEAR == ret_bitmap){
+            		x->nak_times = 0;
             		bitmap_clear_bit(tmp.head.sn);
     				if (NULL == fnx){
     					memcpy((uint8_t*)addr, tmp.buf, tmp_len);
@@ -537,7 +537,6 @@ static int32_t SPI_recv(sn_t *x, uint32_t addr, int32_t len, int32_t timeout, BO
                 }
             	SPIP_DEBUG_REC(("sn add one\r\n"));
             	x->send_sn = tmp.head.sn+1;
-                x->nak_times = 0;
 				tmp_buff_adr = 0;
 				tmp.head.len = SPI_LAST_PCK;
 				privateState = x->last_recv_cmd==true ? ST_SPI_END : ST_SPI_PACK_DATA;
