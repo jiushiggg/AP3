@@ -295,7 +295,6 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 	privateState = ST_SPI_ERR_HANDLE;
                 	break;
                 }
-                SPIP_DEBUG(("calu_crc:%x, send_sn:%d\r\n", calu_crc, x->send_sn));
 
                 SPIP_DEBUG(("test data=%x\r\n", *(uint16_t*)tmp.buf));
                 if (0==tmp.head.sn && *(uint16_t*)tmp.buf==CORE_CMD_BACK_TO_IDLE){

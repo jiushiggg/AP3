@@ -43,7 +43,7 @@
 #ifdef GOLD_BOARD
 const unsigned char APP_VERSION_STRING[] = "rfd-6.0.0"; //must < 32
 #else
-const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc4"; //must < 32
+const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc5"; //must < 32
 #endif
 
 
