@@ -231,9 +231,9 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                 memset((uint8_t*)&send_check, 0, sizeof(send_check));
                 GPIO_write(Board_SPI_SLAVE_READY, 1);
                 transaction.count = SPIPRIVATE_LEN_ALL;
-                x->last_recv_cmd = SPI_DATA_CMD;
                 tx_ptr = transaction.txBuf = spi_send_buf;
                 rx_ptr = transaction.rxBuf = recv_once_buf;
+                x->last_recv_cmd = SPI_DATA_CMD;
                 privateState = ST_SPI_PACKET_TRANS_DATA;
                 break;
             case ST_SPI_PACKET_TRANS_DATA:
@@ -357,7 +357,8 @@ static int32_t SPI_send(sn_t *x, uint32_t src, int32_t len, int32_t timeout, BOO
                     privateState = ST_SPI_ERR;
                     break;
                 }
-            	privateState = ST_SPI_PACKET_TRANS_DATA;
+                x->last_recv_cmd = SPI_DATA_CMD;
+                privateState = ST_SPI_PACKET_TRANS_DATA;
             	break;
             case ST_SPI_PACKET_CHECK_DATA:
                 SPIP_DEBUG(("--->ST_SPI_PACKET_CHECK_DATA\r\n"));
