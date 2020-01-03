@@ -134,6 +134,7 @@ extern INT32 get_rx_data(UINT8 *dst, UINT8 dstsize);
 extern void RF_calib_power(int8_t Tx_power);
 extern void config_power(void);
 extern void send_chaningmode_init(void);
+extern void RF_senseTestFunction(void);
 
 
 

@@ -636,13 +636,98 @@ INT32 get_rx_data(UINT8 *dst, UINT8 dstsize)
     return 1;
 }
 
+void sense_test_callback(RF_Handle h, RF_CmdHandle ch, RF_EventMask e)
+{
+    if (e & RF_EventRxEntryDone)
+    {
+
+        /* Get current unhandled data entry */
+        currentDataEntry = RFQueue_getDataEntry();
+
+        /* Handle the packet data, located at &currentDataEntry->data: */
+//        packetLength      = MAX_LENGTH;
+//        packetDataPointer = (uint8_t*)(&currentDataEntry->data);
+
+        /* Copy the payload + the status byte to the packet variable */
+//        memcpy(packet, packetDataPointer, (packetLength + NUM_APPENDED_BYTES));
+
+        RFQueue_nextEntry();
+    }
+}
+
+void RF_senseTestFunction(void)
+{
+	uint8_t buff1[1]={0};
+
+	IOCPinTypeGpioOutput(RF_TX_TEST_IO);	//set out put
+	IOCPortConfigureSet(RF_TX_TEST_IO, IOC_PORT_RFC_GPO2, IOC_IOMODE_INV);		//map IO and Inverted
+
+
+    /* Modify CMD_PROP_RX command for application needs */
+	RF_cmdPropRxAdv.pQueue = &dataQueue;           /* Set the Data Entity queue for received data */
+    RF_cmdPropRxAdv.rxConf.bAutoFlushIgnored = 1;  /* Discard ignored packets from Rx queue */
+    RF_cmdPropRxAdv.rxConf.bAutoFlushCrcErr = 1;   /* Discard packets with CRC error from Rx queue */
+    RF_cmdPropRxAdv.rxConf.bIncludeCrc = 0;		// jeffrey
+    RF_cmdPropRxAdv.rxConf.bAppendRssi = 0;	// jeffrey
+    RF_cmdPropRxAdv.rxConf.bAppendStatus = 0;
+    RF_cmdPropRxAdv.maxPktLen = MAX_LENGTH;        /* Implement packet length filtering to avoid PROP_ERROR_RXBUF */
+    RF_cmdPropRxAdv.pktConf.bRepeatOk = 1;
+    RF_cmdPropRxAdv.pktConf.bRepeatNok = 1;
+
+#define SENCE_TEST
+#define TEST_DATA_ADDR	(2*4096)
+#if defined(SENCE_TEST)
+#define SENCE_TEST1		2401
+#define SENCE_TEST2		2455
+#define SENCE_TEST3		2485
+#else
+#define SENCE_TEST1		2401
+#define SENCE_TEST2		2445
+#define SENCE_TEST3		2480
+#endif
+#include "extern_flash.h"
+#include "flash.h"
+    Flash_Read(TEST_DATA_ADDR, buff1, sizeof(buff1));
+    switch(buff1[0])
+    {
+    case 0xaa:
+        buff1[0] = 0xbb;
+        RF_cmdFs.frequency = SENCE_TEST2;
+        break;
+    case 0xbb:
+        buff1[0] = 0xcc;
+        RF_cmdFs.frequency = SENCE_TEST3;
+        break;
+    case 0xcc:
+    default:
+        buff1[0] = 0xaa;
+        RF_cmdFs.frequency = SENCE_TEST1;
+        break;
+    }
+    CMD_SE(TEST_DATA_ADDR);
+    Flash_Write(TEST_DATA_ADDR, buff1, sizeof(buff1));
+
+    set_power_rate(RF_DEFAULT_POWER, DATA_RATE_500K);
+#if defined(SENCE_TEST)
+    cc2592Cfg(CC2592_RX_HG_MODE);
+    RF_postCmd(rfHandle, (RF_Op*)&RF_cmdFs, RF_PriorityNormal, NULL, 0);
+
+    /* Enter RX mode and stay forever in RX */
+    RF_runCmd(rfHandle, (RF_Op*)&RF_cmdPropRxAdv, RF_PriorityNormal, &sense_test_callback, IRQ_RX_ENTRY_DONE);
+#else
+    cc2592Cfg(CC2592_TX);
+    RF_postCmd(rfHandle, (RF_Op*)&RF_cmdFs, RF_PriorityNormal, NULL, 0);
+    RF_postCmd(rfHandle, (RF_Op*)&RF_cmdTxTest, RF_PriorityNormal, NULL, 0);
+#endif
+    while(1);
+}
 static void RF_MapIO(void)
 {
     HWREG(RFC_DBELL_BASE + RFC_DBELL_O_SYSGPOCTL) = RFC_DBELL_SYSGPOCTL_GPOCTL0_CPEGPO0 |RFC_DBELL_SYSGPOCTL_GPOCTL1_RATGPO0 | RFC_DBELL_SYSGPOCTL_GPOCTL2_MCEGPO1 | RFC_DBELL_SYSGPOCTL_GPOCTL3_RATGPO1;
 //    IOCIOPortIdSet(RF_RX_SYNC_TEST_IO, IOC_PORT_RFC_GPO3);
 //    IOCIOPortIdSet(RF_RX_DATA_TEST_IO, IOC_PORT_RFC_GPO2);
     IOCIOPortIdSet(RF_TX_TEST_IO,      IOC_PORT_RFC_GPO1);
-    IOCIOPortIdSet( RF_RX_TEST_IO,      IOC_PORT_RFC_GPO0);
+    IOCIOPortIdSet(RF_RX_TEST_IO,      IOC_PORT_RFC_GPO0);
 }
 
 #if 0
