@@ -131,7 +131,12 @@ extern const PIN_Config BoardGpioInitTable[];
 #define CC2640R2_LAUNCHXL_FLASH_CS_ON           0
 #define CC2640R2_LAUNCHXL_FLASH_CS_OFF          1
 
+#if defined(PCIE_SPI)
+#define CC2640R2_LAUNCHXL_SPI_SLAVE_READY          IOID_3
+#elif defined(AP_3)
 #define CC2640R2_LAUNCHXL_SPI_SLAVE_READY          IOID_4
+#else
+#endif
 
 /* SPI Board */
 #define CC2640R2_LAUNCHXL_SPI0_MISO             IOID_26          /* RF1.20 */
@@ -148,15 +153,21 @@ extern const PIN_Config BoardGpioInitTable[];
 #define CC2640R2_LAUNCHXL_SPI1_MOSI             IOID_18
 #define CC2640R2_LAUNCHXL_SPI1_CLK              IOID_17
 #define CC2640R2_LAUNCHXL_SPI1_CSN              IOID_16
-#else
-#define CC2640R2_LAUNCHXL_UART_RX               IOID_2          /* RXD */
-#define CC2640R2_LAUNCHXL_UART_TX               IOID_3          /* TXD */
-
+#elif defined(AP_3)
+#define CC2640R2_LAUNCHXL_UART_RX                IOID_2          /* RXD */
+#define CC2640R2_LAUNCHXL_UART_TX                IOID_3          /* TXD */
 #define CC2640R2_LAUNCHXL_SPI1_MISO              IOID_8          //pcb MISO
 #define CC2640R2_LAUNCHXL_SPI1_MOSI              IOID_9          //pcb MOSI
 #define CC2640R2_LAUNCHXL_SPI1_CLK               IOID_10          //pcb CLK
 #define CC2640R2_LAUNCHXL_SPI1_CSN               IOID_11         //pcb CSN
-
+#elif defined(PCIE_SPI)
+#define CC2640R2_LAUNCHXL_UART_RX                IOID_UNUSED          /* RXD */
+#define CC2640R2_LAUNCHXL_UART_TX                IOID_2          /* TXD */
+#define CC2640R2_LAUNCHXL_SPI1_MISO              IOID_8          //pcb MISO
+#define CC2640R2_LAUNCHXL_SPI1_MOSI              IOID_9          //pcb MOSI
+#define CC2640R2_LAUNCHXL_SPI1_CLK               IOID_10          //pcb CLK
+#define CC2640R2_LAUNCHXL_SPI1_CSN               IOID_11         //pcb CSN
+#else
 
 #endif
 #define CC2640R2_LAUNCHXL_UART_CTS              IOID_19         /* CTS */

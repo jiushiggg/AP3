@@ -59,7 +59,7 @@ typedef struct st_protocolConfig{
 #if defined(PCIE)
     #define TRANS_BUF_SIZE  UART_RECV_BUF
     extern uint8_t spi_send_buf[0];
-#elif defined(AP_3)
+#elif defined(AP_3)||defined(PCIE_SPI)
     #define TRANS_BUF_SIZE  SPIPRIVATE_LEN_ALL
     extern uint8_t spi_send_buf[TRANS_BUF_SIZE];
 #else

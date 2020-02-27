@@ -93,7 +93,7 @@ extern bool SPI_appRecv(void *buffer, uint16_t size);
 void Core_ResetQuitStatus()
 {
 	core_idel_flag = 0;
-#if defined(AP_3)
+#if defined(AP_3)||defined(PCIE_SPI)
 	SPI_appRecv(NULL, SPIPRIVATE_LEN_ALL);
 #endif
 }

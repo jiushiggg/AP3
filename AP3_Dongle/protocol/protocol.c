@@ -18,7 +18,7 @@
     #pragma location = (TRANS_BUF_ADDR)
     uint8_t recv_once_buf[UART_RECV_BUF] = {0};          //the buffer used for UART receiving data
     uint8_t spi_send_buf[0];
-#elif defined(AP_3)
+#elif defined(AP_3)||defined(PCIE_SPI)
     #pragma location = (TRANS_BUF_ADDR)
     uint8_t recv_once_buf[TRANS_BUF_SIZE] = {0};          //the buffer used for SPI receiving data
     #pragma location = (TRANS_BUF_ADDR+TRANS_BUF_SIZE)
@@ -44,7 +44,7 @@ void protocol_peripheralInit(void)
 {
 #if defined(PCIE)
     UART_appInit();
-#elif defined(AP_3)
+#elif defined(AP_3)||defined(PCIE_SPI)
     SPI_appInit(recv_once_buf, spi_send_buf);
 
 #else

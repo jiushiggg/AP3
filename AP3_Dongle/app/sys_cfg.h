@@ -15,6 +15,9 @@
 #elif defined(AP_3)
     #define PROTOCOL_TYPE   PROTOCOL_SPI
     #define DEBUG_PERIPHERAL    DEBUG_UART
+#elif defined(PCIE_SPI)
+    #define PROTOCOL_TYPE   PROTOCOL_SPI
+    #define DEBUG_PERIPHERAL    DEBUG_UART
 #else
 
 #endif
