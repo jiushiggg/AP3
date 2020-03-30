@@ -41,7 +41,7 @@ extern st_calib_value calib;
  ** local setting
  */
 #define TEST_DATA_LEN	26
-UINT8 rx_buf[TEST_DATA_LEN+1] = {0};
+UINT8 rx_buf[TEST_DATA_LEN+2] = {0};
 UINT8 tx_buf[TEST_DATA_LEN] = {0};
 
 UINT8 RFC_CalcBgRssi(UINT8 ch, UINT8 initrssi, UINT8 rssithreshold, UINT8 noiserssi, float factor, int times, UINT8 *dutycycle);
