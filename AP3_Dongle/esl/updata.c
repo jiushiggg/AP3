@@ -52,6 +52,7 @@ INT32 updata_init_data(UINT16 the_updata_cmd, updata_table_t *table,
 	
 	table->updata_addr = the_updata_addr;
 	table->updata_len = the_updata_len;
+	table->retry_times = 0;
 
 	the_updata_addr += LEN_OF_UPDATA_PARA;
 	the_updata_len -= LEN_OF_UPDATA_PARA;
