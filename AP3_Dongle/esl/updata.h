@@ -17,6 +17,9 @@
 #define MAX_FAILED_PKG_NUM  10
 #define ESL_REC_FRAME1_TIMEOUT 1200    //1000ms/0.85ms
 
+#define MAX_RETRY_TIMES 5
+#define RETRY_INCREASE_POWER  3
+
 #pragma pack(1)
 //36byte
 typedef struct {
@@ -63,6 +66,7 @@ typedef struct {
 	UINT16 ok_esl_num;
 	UINT8  data[TABLE_BUF_SIZE];
 
+	UINT8 retry_times;
 	//no use
 	UINT32 sid;
 } updata_table_t;

@@ -256,7 +256,6 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
             rf_flg = PEND_START;
 #endif
 		user_continue:
-//		    write2buf = List_next(write2buf);
 			left_pkg_num--;
 			k++;
 			t++;
@@ -268,7 +267,6 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
 		{
 		    //pinfo("%d.",table->tx_interval);       //debug
 			if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
-			//if((dummy_us=((uint16_t)3*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
 			{
 			    dummy_chaining_mode(table, dummy_us);
 				f = 1;
@@ -546,8 +544,11 @@ UINT8 m1_updata_loop(updata_table_t *table)
 	{
 		goto done;
 	}
-	while(1)
+	while(++table->retry_times < MAX_RETRY_TIMES)
 	{
+		if (RETRY_INCREASE_POWER == table->retry_times){
+			table->tx_power--;				//smaller number, greater power
+		}
 		m1_query_miss(table, timer);
 		if(TIM_CheckTimeout(timer) == TIME_OUT)
 		{
