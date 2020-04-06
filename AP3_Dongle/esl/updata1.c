@@ -302,7 +302,7 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
 }
 
 
-static UINT8 query_miss_slot = 0;
+static volatile UINT8 query_miss_slot = 0;
 static 	UINT8 first_pkg_data[SIZE_ESL_DATA_BUF] = {0};
 
 static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
@@ -372,7 +372,7 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
 		memset(rxbuf, 0, sizeof(rxbuf));
         if(recv_data(table->master_id, rxbuf, sizeof(rxbuf), deal_timeout) == 0)
         {
-            pdebug("recv timeout.\r\n");
+            pinfo("recv timeout:%d\r\n", deal_timeout);
             continue;
         }
 		pdebug("recv:");

@@ -57,16 +57,19 @@ UINT8 g3_check_link_query(UINT8 *eslid, UINT16 pkg_num, UINT8 slot, UINT8 *first
 	
 	if(crc1 != crc2) //check crc
 	{
+		pinfo("crc:%d,%d\r\n", crc1, crc2);
 		goto done;
 	}
 	
 	if(pdata[0] != ((3 << 5) | (first_pkg_data[0] & 0x1F))) //check ctrl
 	{
+		pinfo("ctl:%d\r\n", pdata[0]);
 		goto done;
 	}
 	
-	if(pdata[1] != (slot+1)) //check sid
+	if(pdata[1] != (UINT8)(slot+1)) //check sid
 	{
+		pinfo("ap:%d, %d,esl:%d\r\n", slot,slot+1, pdata[1]);
 		goto done;
 	}
 	
