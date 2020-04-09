@@ -17,8 +17,8 @@
 #define MAX_FAILED_PKG_NUM  10
 #define ESL_REC_FRAME1_TIMEOUT 1200    //1000ms/0.85ms
 
-#define MAX_RETRY_TIMES 5
-#define RETRY_INCREASE_POWER  3
+#define MAX_RETRY_TIMES 200
+#define RETRY_INCREASE_POWER  10
 
 #pragma pack(1)
 //36byte
