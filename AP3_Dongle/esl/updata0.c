@@ -50,7 +50,7 @@ void dummy_chaining_mode(updata_table_t *table, INT32 nus)
     UINT32 addr = table->frame1_addr;
     UINT32 len = table->frame1_len;
     UINT32 *dummy_offset = (UINT32*)&table->frame1_offset;
-    UINT8 dummy_num = nus/table->tx_duration;
+    UINT8 dummy_num = nus/table->tx_duration + 1;
     uint16_t  key;
 
     while(tx_num < dummy_num)
