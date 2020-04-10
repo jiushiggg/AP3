@@ -433,7 +433,7 @@ static void m1_transmit1(updata_table_t *table, UINT8 timer)
 		i++;
 		if(i == table->esl_num)
 		{
-		    pinfo("retry esl num:%d, pkg:%d, %d",i, j, pESL[i].failed_pkg_num);       //debug
+		    pdebug("retry esl num:%d, pkg:%d, %d",i, j, pESL[i].failed_pkg_num);       //debug
 			if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
 			{
 				dummy(table, dummy_us);
