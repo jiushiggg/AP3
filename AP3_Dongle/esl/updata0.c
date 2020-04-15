@@ -33,7 +33,7 @@ void dummy(updata_table_t *table, INT32 nus)
 	}
 	else
 	{
-		INT32 frame1_num = nus/table->tx_duration;
+		INT32 frame1_num = nus/table->tx_duration + 1;
 		pdebug("dummy %d frame1.\r\n", frame1_num);
 		frame1_dummy(table->frame1_addr, table->frame1_len, (UINT32*)&table->frame1_offset, frame1_num);
 	}

@@ -283,18 +283,18 @@ static void m1_transmit(updata_table_t *table, UINT8 timer)
 	RF_wait_cmd_finish(); //Wait for the last packet to be sent
 	RF_cancle(result);
 #endif
-//	if((i != table->esl_num) && (f == 0))           //简化移植的程序。没有必要再发空帧。正常发送有足够的时间开启接收查询。
-//	{
-//		if((dummy_us=(table->tx_interval*1000-k*table->tx_duration)) >= 0)
-//		{
-//			dummy(table, dummy_us);
-//			f = 1;
-//		}
-//		else
-//		{
-//			dummy(table, table->tx_duration);
-//		}
-//	}
+	if((i != table->esl_num) && (f == 0))
+	{
+		if((dummy_us=(table->tx_interval*1000-k*table->tx_duration)) >= 0)
+		{
+			dummy(table, dummy_us);
+			f = 1;
+		}
+		else
+		{
+			dummy(table, table->tx_duration);
+		}
+	}
 
 	wait(2000);
 }
@@ -326,7 +326,7 @@ static void m1_transmit1(updata_table_t *table, UINT8 timer)
 	{
 		left_pkg_num += pESL[i].failed_pkg_num;
 	}
-	pdebug("m1_transmit pkg_num %d, timer %d\r\n", left_pkg_num, timer);
+	pinfo("retry:%d\r\n", left_pkg_num);
 	i = 0;
 	j = 0;
 	while(left_pkg_num > 0)
@@ -434,7 +434,7 @@ static void m1_transmit1(updata_table_t *table, UINT8 timer)
 		if(i == table->esl_num)
 		{
 		    pdebug("retry esl num:%d, pkg:%d, %d",i, j, pESL[i].failed_pkg_num);       //debug
-			if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==RF_WORKING)
+			if((dummy_us=((uint16_t)table->tx_interval*1000-k*table->tx_duration))>=0 && rf_flg==PEND_START)
 			{
 				dummy(table, dummy_us);
 				f = 1;
@@ -442,7 +442,19 @@ static void m1_transmit1(updata_table_t *table, UINT8 timer)
             i = k = 0;
             j++;
 		}
+	}
 
+	if((i != table->esl_num) && (f == 0))
+	{
+		if((dummy_us=(table->tx_interval*1000-k*table->tx_duration)) >= 0)
+		{
+			dummy(table, dummy_us);
+			f = 1;
+		}
+		else
+		{
+			dummy(table, table->tx_duration);
+		}
 	}
 #ifdef RF_CHANING_MODE
 	RF_wait_cmd_finish(); //Wait for the last packet to be sent
@@ -459,7 +471,7 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
 	UINT8 rxbuf[SIZE_ESL_DATA_BUF] = {0};
 	INT32 i;
 	UINT32 deal_timeout = table->deal_duration*1000;
-	UINT8 channel = 0;
+	UINT8 channel = 0, n;
 
 	mode1_esl_t *pESL = (mode1_esl_t *)table->data;
 	
@@ -518,9 +530,14 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
 		set_frequence(channel);
         if(recv_data(table->master_id, rxbuf, sizeof(rxbuf), deal_timeout) == 0)
         {
-            pinfo("recv timeout:%d\r\n", deal_timeout);
-            continue;
+            pinfo("rec timeout:%d\r\n", deal_timeout);
+			pESL[i].failed_pkg_num = pESL[i].total_pkg_num>MAX_FAILED_PKG_NUM ? MAX_FAILED_PKG_NUM : pESL[i].total_pkg_num;	//lost ack, fill data. 
+			for (n=0; n<pESL[i].failed_pkg_num; n++){
+				pESL[i].failed_pkg[2*n] = n+1;
+			}
         }
+		else 
+		{
 		pdebug("recv:");
 		pdebughex(rxbuf, sizeof(rxbuf));
 		ret++;
@@ -535,6 +552,7 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
 		memcpy((UINT8 *)pESL[i].failed_pkg, &rxbuf[4], MAX_FAILED_PKG_NUM*2);
 		//memset((UINT8 *)pESL[i].failed_pkg, 0 , MAX_FAILED_PKG_NUM*2);
 		pESL[i].failed_pkg_num &= MASK_OF_PKG_SN;
+		}
 		if(pESL[i].failed_pkg_num == 0) // miss 0 pkg, tx successfully
 		{
 			//pESL[i].failed_pkg_num = 0;
