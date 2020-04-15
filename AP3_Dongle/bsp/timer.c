@@ -86,6 +86,10 @@ INT32 TIM_GetCount(UINT8 t)
     }
 }
 
+UINT32 getticks(void)
+{
+	return Clock_getTicks();
+}
 
 void TIM_Init(void)
 {
