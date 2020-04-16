@@ -603,7 +603,7 @@ int32_t SPIPrivate_recv(uint8_t* read_buf, uint16_t len)
     int32_t ret_len = 0;
     SPIP_DEBUG_REC(("-------------SPIPrivate_recv---\r\n"));
     memset((uint8_t*)&spi_sn, 0, sizeof(sn_t));
-    ret_len = SPI_recv(&spi_sn, (uint32_t)read_buf, len, EVENT_WAIT_US(500000), NULL);
+    ret_len = SPI_recv(&spi_sn, (uint32_t)read_buf, len, EVENT_WAIT_US(10000), NULL);
     SPIP_DEBUG_REC(("---SPIPrivate_recv exit---%d\r\n", ret_len));
     return ret_len;
 }

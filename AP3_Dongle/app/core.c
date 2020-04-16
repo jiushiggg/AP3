@@ -67,7 +67,7 @@ uint8_t Core_SendAck(uint16_t ack_cmd, uint32_t ack_len, uint8_t *ack_data)
     }
     memset(&x, 0, sizeof(sn_t));
 
-    tx_ack_ret = protocol_send(&x, (uint8_t*)&local_task.ack, len, 5000);
+    tx_ack_ret = protocol_send(&x, (uint8_t*)&local_task.ack, len, EVENT_WAIT_US(10000));
     if(tx_ack_ret == len)
     {
         pdebug("Core_SendAck 0x%04X\r\n", ack_cmd);

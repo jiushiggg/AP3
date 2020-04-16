@@ -68,7 +68,7 @@ UINT8 Core_SendDataFromFlash(UINT32 addr, UINT32 len)
 	
 	memset(&x, 0, sizeof(sn_t));
 	
-	if(protocol_sendFromFlash(&x, addr, len, 5000) >= len)
+	if(protocol_sendFromFlash(&x, addr, len, EVENT_WAIT_US(10000)) >= len)
 	{
 		pdebug("Core_SendDataFromFlash() ok.\r\n");
 		return 1;		
@@ -86,7 +86,7 @@ UINT8 Core_SendData(UINT8 *src, UINT32 len)
 	
 	memset(&x, 0, sizeof(sn_t));
 	
-	if(protocol_send(&x, src, len, 5000) >= len)
+	if(protocol_send(&x, src, len, EVENT_WAIT_US(10000)) >= len)
 	{
 		pdebug("Core_SendData() ok.\r\n");
 		return 1;		
