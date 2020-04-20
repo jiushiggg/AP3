@@ -472,6 +472,8 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
 	INT32 i;
 	UINT32 deal_timeout = table->deal_duration*1000;
 	UINT8 channel = 0, n;
+	UINT16 lost_ack_sn;
+
 
 	mode1_esl_t *pESL = (mode1_esl_t *)table->data;
 	
@@ -531,9 +533,10 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
         if(recv_data(table->master_id, rxbuf, sizeof(rxbuf), deal_timeout) == 0)
         {
             pinfo("rec timeout:%d\r\n", deal_timeout);
+            lost_ack_sn = get_pkg_sn_f(pESL[i].first_pkg_addr, 7);
 			pESL[i].failed_pkg_num = pESL[i].total_pkg_num>MAX_FAILED_PKG_NUM ? MAX_FAILED_PKG_NUM : pESL[i].total_pkg_num;	//lost ack, fill data. 
-			for (n=0; n<pESL[i].failed_pkg_num; n++){
-				pESL[i].failed_pkg[2*n] = n+1;
+			for (n=0; n<pESL[i].failed_pkg_num; n++, lost_ack_sn++){
+				memcpy (&pESL[i].failed_pkg[2*n], &lost_ack_sn, sizeof(lost_ack_sn));
 			}
         }
 		else 
