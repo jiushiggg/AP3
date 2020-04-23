@@ -43,7 +43,7 @@
 #ifdef GOLD_BOARD
 const unsigned char APP_VERSION_STRING[] = "rfd-6.0.0"; //must < 32
 #elif defined(AP_3)
-const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc13"; //must < 32
+const unsigned char APP_VERSION_STRING[24] = "rfd-6.0.7rc14"; //must < 32
 #elif defined(PCIE_SPI)
 const unsigned char APP_VERSION_STRING[24] = "rfd-5.3.0"; //must < 32
 #else

@@ -533,28 +533,41 @@ static INT32 m1_query_miss(updata_table_t *table, UINT8 timer)
         if(recv_data(table->master_id, rxbuf, sizeof(rxbuf), deal_timeout) == 0)
         {
             pinfo("rec timeout:%d\r\n", deal_timeout);
-            lost_ack_sn = get_pkg_sn_f(pESL[i].first_pkg_addr, 7);
-			pESL[i].failed_pkg_num = pESL[i].total_pkg_num>MAX_FAILED_PKG_NUM ? MAX_FAILED_PKG_NUM : pESL[i].total_pkg_num;	//lost ack, fill data. 
-			for (n=0; n<pESL[i].failed_pkg_num; n++, lost_ack_sn++){
-				memcpy (&pESL[i].failed_pkg[2*n], &lost_ack_sn, sizeof(lost_ack_sn));
-			}
+            //Retry packets of previous ack.
+            //if this is first query, retry packets that set in function m1_init_data()
+            for (n=0; n<MAX_FAILED_PKG_NUM; n++){
+            	if (pESL[i].failed_pkg[2*n]==0 && pESL[i].failed_pkg[2*n+1]==0){
+            		break;
+            	}
+            }
+            pESL[i].failed_pkg_num = n;
+
+            if (0 == pESL[i].failed_pkg_num){		//almost never happen, just for safety.
+            	pinfo("have error/r/n");
+                lost_ack_sn = get_pkg_sn_f(pESL[i].first_pkg_addr, 7);
+                //if lost 10 packets, elinker will retry all the left packets
+    			pESL[i].failed_pkg_num = pESL[i].total_pkg_num>MAX_FAILED_PKG_NUM ? MAX_FAILED_PKG_NUM : pESL[i].total_pkg_num;
+    			for (n=0; n<pESL[i].failed_pkg_num; n++, lost_ack_sn++){
+    				memcpy (&pESL[i].failed_pkg[2*n], &lost_ack_sn, sizeof(lost_ack_sn));
+    			}
+            }
         }
 		else 
 		{
-		pdebug("recv:");
-		pdebughex(rxbuf, sizeof(rxbuf));
-		ret++;
+			pdebug("recv:");
+			pdebughex(rxbuf, sizeof(rxbuf));
+			ret++;
+
+			if(g3_check_link_query(pESL[i].esl_id, pESL[i].total_pkg_num, query_miss_slot, first_pkg_data, rxbuf, sizeof(rxbuf)) == 0)
+			{
+				perr("data check error.\r\n");
+				continue;
+			}
 		
-		if(g3_check_link_query(pESL[i].esl_id, pESL[i].total_pkg_num, query_miss_slot, first_pkg_data, rxbuf, sizeof(rxbuf)) == 0)
-		{
-			perr("data check error.\r\n");
-			continue;
-		}
-	
-		memcpy((UINT8 *)&pESL[i].failed_pkg_num, &rxbuf[2], sizeof(pESL[i].failed_pkg_num)); // get failed pkg sn
-		memcpy((UINT8 *)pESL[i].failed_pkg, &rxbuf[4], MAX_FAILED_PKG_NUM*2);
-		//memset((UINT8 *)pESL[i].failed_pkg, 0 , MAX_FAILED_PKG_NUM*2);
-		pESL[i].failed_pkg_num &= MASK_OF_PKG_SN;
+			memcpy((UINT8 *)&pESL[i].failed_pkg_num, &rxbuf[2], sizeof(pESL[i].failed_pkg_num)); // get failed pkg sn
+			memcpy((UINT8 *)pESL[i].failed_pkg, &rxbuf[4], MAX_FAILED_PKG_NUM*2);
+			//memset((UINT8 *)pESL[i].failed_pkg, 0 , MAX_FAILED_PKG_NUM*2);
+			pESL[i].failed_pkg_num &= MASK_OF_PKG_SN;
 		}
 		if(pESL[i].failed_pkg_num == 0) // miss 0 pkg, tx successfully
 		{
