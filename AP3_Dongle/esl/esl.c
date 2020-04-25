@@ -255,7 +255,7 @@ INT32 esl_updata(esl_updata_t *updata)
 		{
 			pdebug("sleep\r\n");
 			pinfoEsl("s4 bg\r\n");
-			sleep_start(sleep_addr, sleep_len);
+			sleep_start(sleep_addr, sleep_len, updata);
 			pinfoEsl("s4 ed\r\n");
 		}
 		if(Core_GetQuitStatus() == 1)
@@ -299,7 +299,7 @@ INT32 esl_updata(esl_updata_t *updata)
 		{
 			pdebug("sleep\r\n");
 			pinfo("s7 bg\r\n");
-			sleep_start(sleep_addr, sleep_len);
+			sleep_start(sleep_addr, sleep_len, updata);
 			pinfo("s7 ed\r\n");
 		}
 		if(Core_GetQuitStatus() == 1)

@@ -60,6 +60,7 @@ typedef struct {
 	UINT32 updata_len;
 	
 	UINT16 max_esl_num;
+	UINT16 max_esl_pkg_num;
 	UINT16 esl_num;
 	UINT16 pkg_num;
 	UINT16 real_pkg_num;

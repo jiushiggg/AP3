@@ -12,6 +12,12 @@
 #define OFFSET_SLEEP_DATA	17
 #define SIZE_MAX_ESL_BUF	64
 
+#define SEND_QUERY_TIME		2	//2ms
+#define RETRY_TIMES			2
+#define FRAME1_TIME			20  //20ms
+#define SEND_SLEEP_TIME		1 	//1ms
+#define SEND_DATA_TIME		85	//850us
+
 static UINT32 sleep_addr = 0;
 static INT32 sleep_len = 0;
 
@@ -31,7 +37,7 @@ static UINT8 sleep_channel = 0;
 static UINT8 sleep_data[SIZE_MAX_ESL_BUF] = {0};
 static UINT8 sleep_data_len = 0;
 
-static INT32 sleep_mode0()
+static INT32 sleep_mode0(void)
 {
 	INT32 ret = 0;
 	INT32 i, j;
@@ -94,8 +100,10 @@ static INT32 sleep_mode0()
 	return ret;
 }
 
-INT32 sleep_init(UINT32 addr, INT32 len)
+INT32 sleep_init(UINT32 addr, INT32 len, updata_table_t *table)
 {
+	INT16 valid_slp_num;
+
 	if((addr == 0) || (len == 0))
 	{
 		return -1;
@@ -116,7 +124,27 @@ INT32 sleep_init(UINT32 addr, INT32 len)
 		sleep_default_len = 26;
 	}
 	Flash_Read(addr+15, (UINT8 *)&sleep_num, 2);
-	
+	if (table->esl_num < 6){
+		valid_slp_num = (table->esl_work_duration*1000 - \
+						FRAME1_TIME -\
+						table->max_esl_pkg_num*(table->tx_interval+1) - \
+						table->esl_num*(table->deal_duration + SEND_QUERY_TIME)*RETRY_TIMES	-\
+						table->esl_num*SEND_SLEEP_TIME	\
+						)/SEND_SLEEP_TIME;
+	}else {
+		valid_slp_num = (table->esl_work_duration*1000 - \
+						FRAME1_TIME - \
+						((UINT16)table->esl_num+1)*SEND_DATA_TIME/100 - \
+						(UINT16)table->esl_num*(table->deal_duration + SEND_QUERY_TIME)*RETRY_TIMES	-\
+						table->esl_num*SEND_SLEEP_TIME	  \
+						)/SEND_SLEEP_TIME;
+
+	}
+	if (valid_slp_num > 0){
+		sleep_num = valid_slp_num<sleep_num ? valid_slp_num : sleep_num;
+	}else{
+		sleep_num = 0;
+	}
 	return 0;
 }
 
@@ -126,11 +154,11 @@ void sleep_exit(void)
 	sleep_len = 0;
 }
 
-INT32 sleep_start(const UINT32 addr, const UINT32 len)
+INT32 sleep_start(const UINT32 addr, const UINT32 len, updata_table_t *table)
 {
 	INT32 ret = 0;
 
-	if(sleep_init(addr, len) < 0)
+	if(sleep_init(addr, len, table) < 0)
 	{
 		ret = -1;
 		goto done;

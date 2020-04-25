@@ -3,8 +3,8 @@
 
 #include "datatype.h"
 #include "updata.h"
+INT32 sleep_start(const UINT32 addr, const UINT32 len, updata_table_t *table);
 
-INT32 sleep_start(const UINT32 addr, const UINT32 len);
 
 #endif
 

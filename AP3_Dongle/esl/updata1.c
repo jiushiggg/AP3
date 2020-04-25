@@ -49,7 +49,7 @@ UINT16 m1_init_data(UINT32 addr, UINT32 len, updata_table_t *table)
 	UINT32 cur_addr = addr;
 	UINT8 ff = 1;
 	UINT8 last_id[4] = {0};
-	UINT16 num = 0;
+	UINT16 num = 0, tmp_pkg_num = 0;
 	UINT8 cur_id[4] = {0};
 	INT32 i,j;
 	UINT16 sn;
@@ -86,8 +86,10 @@ UINT16 m1_init_data(UINT32 addr, UINT32 len, updata_table_t *table)
 			pESL[num].sleep_flag = SLEEP_FRAME_CNT;
 			num++;
 			table->esl_num++;
+			table->max_esl_pkg_num = tmp_pkg_num>table->max_esl_pkg_num ? tmp_pkg_num : table->max_esl_pkg_num;
+			tmp_pkg_num = 0;
 		}
-		
+		tmp_pkg_num++;
 		pESL[num-1].total_pkg_num += 1;	
 		pESL[num-1].failed_pkg_num += 1;
 		table->pkg_num += 1;
@@ -101,7 +103,8 @@ UINT16 m1_init_data(UINT32 addr, UINT32 len, updata_table_t *table)
 			break;
 		}
 	}
-	
+
+	table->max_esl_pkg_num = tmp_pkg_num>table->max_esl_pkg_num ? tmp_pkg_num : table->max_esl_pkg_num;
 	/* init failed pkg sn */
 	pESL = (mode1_esl_t *)table->data;
 	for(i = 0; i < table->esl_num; i++)
